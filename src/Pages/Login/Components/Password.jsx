@@ -20,9 +20,7 @@ const Password = () => {
           <button
             type="button"
             className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-            onClick={() =>
-              window.togglePassword && window.togglePassword("password")
-            }
+            onClick={(e) => window.togglePassword && window.togglePassword(e)}
             data-toggle-for="password"
           >
             <i data-lucide="eye" className="h-4 w-4"></i>

@@ -19,19 +19,40 @@ const Login = () => {
     document.body.appendChild(script);
 
     // Toggle password visibility preserving original behavior
-    window.togglePassword = (fieldId) => {
-      const field = document.getElementById(fieldId);
-      if (!field) return;
-      // find icon inside the same wrapper
-      const wrapper = field.closest("div");
-      const icon = wrapper ? wrapper.querySelector("button i") : null;
+    // Accept either a fieldId string or an Event from a click handler so
+    // behavior matches the original inline `onclick` implementation.
+    window.togglePassword = (arg) => {
+      let field = null;
+      let icon = null;
 
-      if (field.type === "password") {
-        field.type = "text";
-        if (icon) icon.setAttribute("data-lucide", "eye-off");
+      if (typeof arg === 'string') {
+        field = document.getElementById(arg);
+        if (field) {
+          const wrapper = field.closest('div');
+          icon = wrapper ? wrapper.querySelector('button i') : null;
+        }
+      } else if (arg && arg.currentTarget) {
+        // arg is a React/native event
+        const btn = arg.currentTarget;
+        const fieldId = btn.getAttribute('data-toggle-for');
+        field = fieldId ? document.getElementById(fieldId) : null;
+        icon = btn.querySelector('i');
+      } else if (arg && arg.target) {
+        // arg could be a native event
+        const btn = arg.target.closest('button');
+        const fieldId = btn ? btn.getAttribute('data-toggle-for') : null;
+        field = fieldId ? document.getElementById(fieldId) : null;
+        icon = btn ? btn.querySelector('i') : null;
+      }
+
+      if (!field) return;
+
+      if (field.type === 'password') {
+        field.type = 'text';
+        if (icon) icon.setAttribute('data-lucide', 'eye-off');
       } else {
-        field.type = "password";
-        if (icon) icon.setAttribute("data-lucide", "eye");
+        field.type = 'password';
+        if (icon) icon.setAttribute('data-lucide', 'eye');
       }
 
       if (window.lucide && window.lucide.createIcons) {
