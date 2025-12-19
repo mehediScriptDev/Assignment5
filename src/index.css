@@ -7,21 +7,22 @@
 
 @layer base {
 	:root {
-		--color-border: 214.3 31.8% 91.4%;
-		--color-input: 214.3 31.8% 91.4%;
-		--color-ring: 222.2 84% 4.9%;
-		--color-background: 0 0% 100%;
-		--color-foreground: 222.2 84% 4.9%;
-		--color-primary: 222.2 47.4% 11.2%;
-		--color-primary-foreground: 210 40% 98%;
-		--color-secondary: 210 40% 96.1%;
-		--color-secondary-foreground: 222.2 47.4% 11.2%;
-		--color-muted: 210 40% 96.1%;
-		--color-muted-foreground: 215.4 16.3% 46.9%;
-		--color-accent: 210 40% 96.1%;
-		--color-accent-foreground: 222.2 47.4% 11.2%;
+		/* Modern Indigo + Teal theme */
+		--color-border: 210 16% 92%; /* light gray */
+		--color-input: 210 16% 96%;
+		--color-ring: 233 80% 60%; /* focus ring (indigo-ish) */
+		--color-background: 210 50% 98%; /* very light */
+		--color-foreground: 220 15% 12%; /* dark slate */
+		--color-primary: 233 66% 44%; /* indigo */
+		--color-primary-foreground: 0 0% 100%; /* white */
+		--color-secondary: 174 65% 36%; /* teal */
+		--color-secondary-foreground: 0 0% 100%;
+		--color-muted: 210 20% 95%;
+		--color-muted-foreground: 220 10% 50%;
+		--color-accent: 45 100% 96%;
+		--color-accent-foreground: 220 15% 12%;
 		--color-card: 0 0% 100%;
-		--color-card-foreground: 222.2 84% 4.9%;
+		--color-card-foreground: 220 15% 12%;
 	}
 }
 
@@ -102,6 +103,45 @@
 	.skeleton {
 		@apply animate-pulse bg-[hsl(var(--color-muted))] rounded-md;
 	}
+}
+
+/* Alignment and helper utilities to improve form and header layouts */
+@layer components {
+	.form-row {
+		@apply flex flex-col gap-2;
+	}
+
+	.form-grid {
+		@apply grid grid-cols-1 gap-4;
+	}
+
+	.align-center {
+		@apply flex items-center justify-center;
+	}
+
+	.brand {
+		@apply flex items-center gap-2;
+	}
+
+	.card > *:not(:last-child) {
+		@apply mb-4;
+	}
+}
+
+/* Ensure lucide icons align nicely with text */
+i[data-lucide] {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+/* Small adjustments for header and footer spacing */
+header .container {
+	padding-left: 1rem;
+	padding-right: 1rem;
+}
+
+.btn {
+	min-height: 40px;
 }
 
 .dropdown {

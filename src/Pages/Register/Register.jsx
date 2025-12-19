@@ -75,7 +75,7 @@ const Register = () => {
 
     return (
         <>
-            <div className="max-w-2xl mx-auto">
+            <div className="max-w-2xl mx-auto -mt-6">
                 <PageTitleRegister />
                 <AccountTypeToggle />
                 <div className="card p-8 md:p-10">
@@ -89,13 +89,13 @@ const Register = () => {
                             <span className="px-4 bg-card text-muted-foreground font-medium">Or continue with</span>
                         </div>
                     </div>
-                    <div className="mt-8 text-center text-sm text-muted-foreground">
+                    <div className="mt-6 text-center text-sm text-muted-foreground">
                         Already have an account?
                         <Link to="/login" className="text-primary hover:underline font-medium">Sign in</Link>
                     </div>
                 </div>
                 <FeatureHighlights />
-                <div className="mt-8 text-center">
+                <div className="mt-6 text-center">
                     <p className="text-sm text-muted-foreground">By creating an account, you'll get access to thousands of job opportunities from top companies worldwide.</p>
                 </div>
             </div>

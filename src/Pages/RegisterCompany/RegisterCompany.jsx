@@ -85,7 +85,7 @@ const RegisterCompany = () => {
                         </div>
                     </div>
 
-                    <div className="mt-8 text-center text-sm text-muted-foreground">
+                    <div className="mt-6 text-center text-sm text-muted-foreground">
                         Already have an account?
                         <Link to="/login" className="text-primary hover:underline font-medium">Sign in</Link>
                     </div>

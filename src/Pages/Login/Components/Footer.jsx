@@ -3,8 +3,8 @@ import React from "react";
 const Footer = () => {
   return (
     <div>
-      <footer className="border-t border-border bg-muted/30 mt-16">
-        <div className="container mx-auto px-4 py-12">
+      <footer className="border-t border-border bg-muted/30 mt-8">
+        <div className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <h3 className="font-semibold mb-4">LWS Job Portal</h3>
@@ -89,7 +89,7 @@ const Footer = () => {
               </ul>
             </div>
           </div>
-          <div className="border-t border-border mt-8 pt-8 text-center text-sm text-muted-foreground">
+          <div className="border-t border-border mt-6 pt-6 text-center text-sm text-muted-foreground">
             <p>&copy; 2025 LWS Job Portal. All rights reserved.</p>
           </div>
         </div>

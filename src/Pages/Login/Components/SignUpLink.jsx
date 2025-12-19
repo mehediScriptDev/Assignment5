@@ -4,7 +4,7 @@ import { Link } from 'react-router';
 const SignUpLink = () => {
   return (
     <div>
-      <div className="mt-8 text-center text-sm text-muted-foreground">
+      <div className="mt-4 text-center text-sm text-muted-foreground">
         Don't have an account?
         <Link
           to="/register"
