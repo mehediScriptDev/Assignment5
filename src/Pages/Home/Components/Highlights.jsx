@@ -1,6 +1,6 @@
 import React from 'react';
 
-const FeatureHighlights = () => {
+const Highlights = () => {
     return (
         <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="flex items-start gap-3 p-4 rounded-lg bg-muted/50">
@@ -34,4 +34,4 @@ const FeatureHighlights = () => {
     );
 };
 
-export default FeatureHighlights;
+export default Highlights;
