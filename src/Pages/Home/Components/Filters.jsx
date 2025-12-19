@@ -3,7 +3,8 @@ import React from 'react';
 const Dropdown = ({ id, label, children }) => {
     return (
         <div className="dropdown">
-            <button className="btn btn-outline text-xs h-8 px-3 flex items-center" onClick={() => window.toggleDropdown && window.toggleDropdown(id)}>
+            <button data-dropdown-for={id} className="btn btn-outline text-xs h-8 px-3 flex items-center" onClick={() => window.toggleDropdown && window.toggleDropdown(id)}>
+                <i data-lucide="filter" className="h-3 w-3 mr-2"></i>
                 {label}
                 <i data-lucide="chevron-down" className="ml-2 h-3 w-3"></i>
             </button>

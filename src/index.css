@@ -54,6 +54,16 @@
 		@apply h-10 px-4 py-2;
 	}
 
+	/* Outline buttons used for filters */
+	.btn-outline {
+		@apply border border-[hsl(var(--color-border))] bg-[hsl(var(--color-background))] text-[hsl(var(--color-foreground))];
+		@apply h-8 px-3;
+	}
+
+	.btn-outline.active {
+		@apply bg-[hsl(var(--color-primary))] text-[hsl(var(--color-primary-foreground))] shadow;
+	}
+
 	.card {
 		@apply rounded-lg border border-[hsl(var(--color-border))];
 		@apply bg-[hsl(var(--color-card))] text-[hsl(var(--color-card-foreground))] shadow-sm;

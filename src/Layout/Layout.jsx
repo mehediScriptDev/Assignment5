@@ -14,11 +14,16 @@ const Layout = () => {
         };
         document.body.appendChild(script);
 
-        // Dropdown toggle used by Filters
+        // Dropdown toggle used by Filters — also toggles an active state on the trigger button
         window.toggleDropdown = (id) => {
             const el = document.getElementById(id);
             if (!el) return;
             el.classList.toggle('show');
+
+            try {
+                const btn = document.querySelector(`[data-dropdown-for="${id}"]`);
+                if (btn) btn.classList.toggle('active');
+            } catch (e) {}
         };
 
         return () => {
