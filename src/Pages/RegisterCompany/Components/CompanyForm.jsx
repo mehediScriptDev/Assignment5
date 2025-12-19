@@ -1,8 +1,65 @@
-import React from 'react';
+import React, { useState, useContext } from 'react';
+import client from '../../../../src/api/client';
+import { AuthContext } from '../../../../src/context/AuthContext';
+import { useNavigate } from 'react-router';
 
 const CompanyForm = () => {
+    const [companyName, setCompanyName] = useState('');
+    const [email, setEmail] = useState('');
+    const [website, setWebsite] = useState('');
+    const [industry, setIndustry] = useState('');
+    const [companySize, setCompanySize] = useState('');
+    const [foundedYear, setFoundedYear] = useState('');
+    const [location, setLocation] = useState('');
+    const [description, setDescription] = useState('');
+    const [password, setPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [loading, setLoading] = useState(false);
+    const auth = useContext(AuthContext);
+    const navigate = useNavigate();
+
+    const onSubmit = async (e) => {
+        e.preventDefault();
+        if (password !== confirmPassword) return alert('Passwords do not match');
+        setLoading(true);
+        try {
+            const payload = {
+                name: companyName,
+                email,
+                password,
+                role: 'COMPANY',
+                website,
+                industry,
+                companySize,
+                foundedYear,
+                location,
+                description
+            };
+            const res = await client.post('/auth/register', payload);
+            if (res.data && res.data.success) {
+                auth.register(res.data);
+                navigate('/');
+            } else {
+                alert(res.data?.message || 'Registration failed');
+            }
+        } catch (err) {
+            console.error('Company register error:', err);
+            const serverMessage = err?.response?.data?.message;
+            const serverBody = err?.response?.data;
+            if (serverMessage) {
+                alert(`Registration failed: ${serverMessage}`);
+            } else if (err.message) {
+                alert(`Registration error: ${err.message}`);
+            } else {
+                alert(`Registration error: ${JSON.stringify(serverBody) || 'unknown'}`);
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
+
     return (
-        <form className="space-y-6">
+        <form className="space-y-6" onSubmit={onSubmit}>
             <div className="space-y-5">
                 <div className="flex items-center gap-2 pb-2 border-b border-border">
                     <i data-lucide="building" className="h-5 w-5 text-primary"></i>
@@ -13,7 +70,7 @@ const CompanyForm = () => {
                     <label htmlFor="companyName" className="label">Company Name <span className="text-red-500">*</span></label>
                     <div className="relative">
                         <i data-lucide="building-2" className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"></i>
-                        <input type="text" id="companyName" name="companyName" className="input pl-10" placeholder="e.g., TechCorp Solutions" required />
+                        <input value={companyName} onChange={e => setCompanyName(e.target.value)} type="text" id="companyName" name="companyName" className="input pl-10" placeholder="e.g., TechCorp Solutions" required />
                     </div>
                 </div>
 
@@ -21,7 +78,7 @@ const CompanyForm = () => {
                     <label htmlFor="email" className="label">Email Address <span className="text-red-500">*</span></label>
                     <div className="relative">
                         <i data-lucide="mail" className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"></i>
-                        <input type="email" id="email" name="email" className="input pl-10" placeholder="john.doe@company.com" required />
+                        <input value={email} onChange={e => setEmail(e.target.value)} type="email" id="email" name="email" className="input pl-10" placeholder="john.doe@company.com" required />
                     </div>
                 </div>
 
@@ -30,14 +87,14 @@ const CompanyForm = () => {
                         <label htmlFor="website" className="label">Company Website <span className="text-red-500">*</span></label>
                         <div className="relative">
                             <i data-lucide="globe" className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"></i>
-                            <input type="url" id="website" name="website" className="input pl-10" placeholder="https://example.com" required />
+                            <input value={website} onChange={e => setWebsite(e.target.value)} type="url" id="website" name="website" className="input pl-10" placeholder="https://example.com" required />
                         </div>
                     </div>
                     <div className="space-y-2">
                         <label htmlFor="industry" className="label">Industry <span className="text-red-500">*</span></label>
                         <div className="relative">
                             <i data-lucide="briefcase" className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"></i>
-                            <select id="industry" name="industry" className="input pl-10" required>
+                            <select id="industry" value={industry} onChange={e => setIndustry(e.target.value)} name="industry" className="input pl-10" required>
                                 <option value="">Select industry</option>
                                 <option value="software">Software</option>
                                 <option value="finance">Finance</option>
@@ -54,7 +111,7 @@ const CompanyForm = () => {
                         <label htmlFor="companySize" className="label">Company Size</label>
                         <div className="relative">
                             <i data-lucide="users" className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"></i>
-                            <select id="companySize" name="companySize" className="input pl-10">
+                            <select id="companySize" value={companySize} onChange={e => setCompanySize(e.target.value)} name="companySize" className="input pl-10">
                                 <option value="">Select size</option>
                                 <option value="1-10">1-10</option>
                                 <option value="11-50">11-50</option>
@@ -68,7 +125,7 @@ const CompanyForm = () => {
                         <label htmlFor="foundedYear" className="label">Founded Year</label>
                         <div className="relative">
                             <i data-lucide="calendar" className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"></i>
-                            <input type="number" id="foundedYear" name="foundedYear" className="input pl-10" placeholder="e.g., 2010" />
+                            <input value={foundedYear} onChange={e => setFoundedYear(e.target.value)} type="number" id="foundedYear" name="foundedYear" className="input pl-10" placeholder="e.g., 2010" />
                         </div>
                     </div>
                 </div>
@@ -77,13 +134,13 @@ const CompanyForm = () => {
                     <label htmlFor="location" className="label">Headquarters Location <span className="text-red-500">*</span></label>
                     <div className="relative">
                         <i data-lucide="map-pin" className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"></i>
-                        <input type="text" id="location" name="location" className="input pl-10" placeholder="City, Country" required />
+                        <input value={location} onChange={e => setLocation(e.target.value)} type="text" id="location" name="location" className="input pl-10" placeholder="City, Country" required />
                     </div>
                 </div>
 
                 <div className="space-y-2">
                     <label htmlFor="description" className="label">Company Description <span className="text-red-500">*</span></label>
-                    <textarea id="description" name="description" className="textarea min-h-30" placeholder="Tell us about your company, mission, and what makes it a great place to work..." required></textarea>
+                    <textarea value={description} onChange={e => setDescription(e.target.value)} id="description" name="description" className="textarea min-h-30" placeholder="Tell us about your company, mission, and what makes it a great place to work..." required></textarea>
                     <p className="text-xs text-muted-foreground">Minimum 100 characters. This will be displayed on your company profile.</p>
                 </div>
 
@@ -109,7 +166,7 @@ const CompanyForm = () => {
                         <label htmlFor="password" className="label">Password <span className="text-red-500">*</span></label>
                         <div className="relative">
                             <i data-lucide="lock" className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"></i>
-                            <input type="password" id="password" name="password" className="input pl-10 pr-10" placeholder="Create a strong password" required />
+                            <input value={password} onChange={e => setPassword(e.target.value)} type="password" id="password" name="password" className="input pl-10 pr-10" placeholder="Create a strong password" required />
                             <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" onClick={(e) => window.togglePassword && window.togglePassword(e)} data-toggle-for="password">
                                 <i data-lucide="eye" className="h-4 w-4"></i>
                             </button>
@@ -119,7 +176,7 @@ const CompanyForm = () => {
                         <label htmlFor="confirmPassword" className="label">Confirm Password <span className="text-red-500">*</span></label>
                         <div className="relative">
                             <i data-lucide="lock" className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"></i>
-                            <input type="password" id="confirmPassword" name="confirmPassword" className="input pl-10 pr-10" placeholder="Re-enter your password" required />
+                            <input value={confirmPassword} onChange={e => setConfirmPassword(e.target.value)} type="password" id="confirmPassword" name="confirmPassword" className="input pl-10 pr-10" placeholder="Re-enter your password" required />
                             <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" onClick={(e) => window.togglePassword && window.togglePassword(e)} data-toggle-for="confirmPassword">
                                 <i data-lucide="eye" className="h-4 w-4"></i>
                             </button>
@@ -148,7 +205,7 @@ const CompanyForm = () => {
 
             <button type="submit" className="btn btn-primary w-full text-base h-11 mt-2">
                 <i data-lucide="building-2" className="h-4 w-4 mr-2"></i>
-                Register Company
+                {loading ? 'Registering...' : 'Register Company'}
             </button>
         </form>
     );
