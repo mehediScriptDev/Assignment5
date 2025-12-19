@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router';
 
 const AccountTypeToggle = () => {
     return (
@@ -9,10 +10,10 @@ const AccountTypeToggle = () => {
                         <i data-lucide="user" className="h-4 w-4 mr-2"></i>
                         Job Seeker
                     </button>
-                    <a id="employerTab" href="/register-company" className="btn btn-ghost text-center" onClick={() => window.switchRole && window.switchRole('employer')}>
+                    <Link id="employerTab" to="/register-company" className="btn btn-ghost text-center" onClick={() => window.switchRole && window.switchRole('employer')}>
                         <i data-lucide="building-2" className="h-4 w-4 mr-2"></i>
                         Employer
-                    </a>
+                    </Link>
                 </div>
             </div>
         </div>

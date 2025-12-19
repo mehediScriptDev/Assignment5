@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
-import Header from '../Login/Components/Header';
-import Footer from '../Login/Components/Footer';
+import { Link } from 'react-router';
 import PageTitleCompany from './Components/PageTitleCompany';
 import AccountTypeToggle from './Components/AccountTypeToggle';
 import CompanyForm from './Components/CompanyForm';
@@ -8,18 +7,6 @@ import BenefitsHighlights from './Components/BenefitsHighlights';
 
 const RegisterCompany = () => {
     useEffect(() => {
-        const script = document.createElement('script');
-        script.src = 'https://unpkg.com/lucide@latest';
-        script.async = true;
-        script.onload = () => {
-            try {
-                if (window.lucide && window.lucide.createIcons) {
-                    window.lucide.createIcons();
-                }
-            } catch (e) {}
-        };
-        document.body.appendChild(script);
-
         // Toggle password (accept event or id)
         window.togglePassword = (arg) => {
             let field = null;
@@ -76,42 +63,37 @@ const RegisterCompany = () => {
         logoInput && logoInput.addEventListener('change', logoHandler);
 
         return () => {
-            try { document.body.removeChild(script); } catch (e) {}
             try { delete window.togglePassword; } catch (e) {}
             logoInput && logoInput.removeEventListener('change', logoHandler);
         };
     }, []);
 
     return (
-        <div className="bg-background text-foreground antialiased">
-            <Header />
-            <main className="container mx-auto px-4 py-8">
-                <div className="max-w-3xl mx-auto">
-                    <PageTitleCompany />
-                    <AccountTypeToggle />
-                    <div className="card p-8 md:p-10">
-                        <CompanyForm />
+        <>
+            <div className="max-w-3xl mx-auto">
+                <PageTitleCompany />
+                <AccountTypeToggle />
+                <div className="card p-8 md:p-10">
+                    <CompanyForm />
 
-                        <div className="relative my-8">
-                            <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                                <div className="w-full border-t border-border"></div>
-                            </div>
-                            <div className="relative flex justify-center text-sm">
-                                <span className="px-4 bg-card text-muted-foreground font-medium">Or continue with</span>
-                            </div>
+                    <div className="relative my-8">
+                        <div className="absolute inset-0 flex items-center" aria-hidden="true">
+                            <div className="w-full border-t border-border"></div>
                         </div>
-
-                        <div className="mt-8 text-center text-sm text-muted-foreground">
-                            Already have an account?
-                            <a href="/login" className="text-primary hover:underline font-medium">Sign in</a>
+                        <div className="relative flex justify-center text-sm">
+                            <span className="px-4 bg-card text-muted-foreground font-medium">Or continue with</span>
                         </div>
                     </div>
 
-                    <BenefitsHighlights />
+                    <div className="mt-8 text-center text-sm text-muted-foreground">
+                        Already have an account?
+                        <Link to="/login" className="text-primary hover:underline font-medium">Sign in</Link>
+                    </div>
                 </div>
-            </main>
-            <Footer />
-        </div>
+
+                <BenefitsHighlights />
+            </div>
+        </>
     );
 };
 

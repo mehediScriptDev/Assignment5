@@ -1,26 +1,10 @@
 import React, { useEffect } from "react";
-import Header from "./Components/Header";
 import MainContent from "./Components/MainContent";
-import Footer from "./Components/Footer";
 
 const Login = () => {
   useEffect(() => {
-    // Dynamically load lucide from CDN so data-lucide icons render
-    const script = document.createElement("script");
-    script.src = "https://unpkg.com/lucide@latest";
-    script.async = true;
-    script.onload = () => {
-      try {
-        if (window.lucide && window.lucide.createIcons) {
-          window.lucide.createIcons();
-        }
-      } catch (e) {}
-    };
-    document.body.appendChild(script);
-
-    // Toggle password visibility preserving original behavior
-    // Accept either a fieldId string or an Event from a click handler so
-    // behavior matches the original inline `onclick` implementation.
+    // Toggle password visibility preserving original behavior.
+    // Layout component loads lucide; here we only define handlers.
     window.togglePassword = (arg) => {
       let field = null;
       let icon = null;
@@ -68,16 +52,16 @@ const Login = () => {
 
       if (!signupLink) return;
 
-      if (role === "jobseeker") {
+        if (role === 'jobseeker') {
         jobseekerTab && jobseekerTab.classList.add("active");
         employerTab && employerTab.classList.remove("active");
         signupLink.textContent = "Sign up as Job Seeker";
-        signupLink.href = "register.html";
+          signupLink.href = "/register";
       } else {
         employerTab && employerTab.classList.add("active");
         jobseekerTab && jobseekerTab.classList.remove("active");
         signupLink.textContent = "Sign up as Employer";
-        signupLink.href = "register-company.html";
+          signupLink.href = "/register-company";
       }
 
       if (window.lucide && window.lucide.createIcons)
@@ -85,30 +69,15 @@ const Login = () => {
     };
 
     return () => {
-      // cleanup
-      try {
-        document.body.removeChild(script);
-      } catch (e) {}
-      try {
-        delete window.togglePassword;
-      } catch (e) {}
-      try {
-        delete window.switchRole;
-      } catch (e) {}
+      try { delete window.togglePassword; } catch (e) {}
+      try { delete window.switchRole; } catch (e) {}
     };
   }, []);
 
   return (
-    <div className="bg-background text-foreground antialiased">
-      {/* header */}
-      <Header />
-
-      {/* main content */}
+    <>
       <MainContent />
-
-      {/* footer */}
-      <Footer />
-    </div>
+    </>
   );
 };
 
