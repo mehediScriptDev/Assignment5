@@ -64,6 +64,15 @@
 		@apply bg-[hsl(var(--color-primary))] text-[hsl(var(--color-primary-foreground))] shadow;
 	}
 
+	/* Accent background used for hover states on dropdown items */
+	.bg-accent {
+		@apply bg-[hsl(var(--color-accent))];
+	}
+
+	.hover\:bg-accent:hover {
+		@apply bg-[hsl(var(--color-accent))];
+	}
+
 	.card {
 		@apply rounded-lg border border-[hsl(var(--color-border))];
 		@apply bg-[hsl(var(--color-card))] text-[hsl(var(--color-card-foreground))] shadow-sm;

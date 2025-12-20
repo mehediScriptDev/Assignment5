@@ -1,6 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link, useParams } from 'react-router';
 import client from '../../api/client';
+import { FiChevronRight, FiMapPin, FiClock, FiBriefcase, FiDollarSign, FiUsers, FiSend, FiX, FiFlag, FiEye } from 'react-icons/fi';
+import { BiBuilding } from 'react-icons/bi';
+import { FaLinkedin, FaTwitter, FaFacebook } from 'react-icons/fa';
 
 const JobDetails = () => {
   const { slug } = useParams();
@@ -10,6 +13,11 @@ const JobDetails = () => {
   const [coverLetter, setCoverLetter] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [similar, setSimilar] = useState([]);
+  const [uploadedFile, setUploadedFile] = useState(null);
+  const [filePreviewVisible, setFilePreviewVisible] = useState(false);
+  const [fileName, setFileName] = useState('');
+  const [fileSize, setFileSize] = useState('');
+  const modalRef = useRef(null);
 
   useEffect(() => {
     const load = async () => {
@@ -39,14 +47,28 @@ const JobDetails = () => {
   const closeApply = () => {
     setApplyOpen(false);
     setCoverLetter('');
+    setUploadedFile(null);
+    setFilePreviewVisible(false);
+    setFileName('');
+    setFileSize('');
   };
 
   const submitApplication = async () => {
     if (!job) return;
     if (!coverLetter || coverLetter.trim().length < 20) return alert('Please add a cover letter (min 20 chars)');
+    if (uploadedFile && uploadedFile.type !== 'application/pdf') return alert('Please upload a PDF file only');
+    if (uploadedFile && uploadedFile.size > 5 * 1024 * 1024) return alert('File size must be less than 5MB');
+
     setSubmitting(true);
     try {
-      const res = await client.post(`/applications/jobs/${job.id}/apply`, { coverLetter });
+      const form = new FormData();
+      form.append('coverLetter', coverLetter);
+      if (uploadedFile) form.append('resume', uploadedFile);
+
+      const res = await client.post(`/applications/jobs/${job.id}/apply`, form, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+
       if (res.data && res.data.success) {
         alert('Application submitted');
         closeApply();
@@ -60,82 +82,305 @@ const JobDetails = () => {
     }
   };
 
+  // Close modal on Escape
+  useEffect(() => {
+    if (!applyOpen) return;
+    const onKey = (e) => { if (e.key === 'Escape') closeApply(); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [applyOpen]);
+
+  // File upload handlers for modal
+  const handleFileChange = (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    if (file.type !== 'application/pdf') {
+      alert('Please upload a PDF file only');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      alert('File size must be less than 5MB');
+      return;
+    }
+    setUploadedFile(file);
+    setFilePreviewVisible(true);
+    setFileName(file.name);
+    setFileSize(formatFileSize(file.size));
+  };
+
+  const handleUploadAreaClick = () => {
+    const input = document.getElementById('resumeInput');
+    if (input) input.click();
+  };
+
+  const removeFile = () => {
+    setUploadedFile(null);
+    setFilePreviewVisible(false);
+    setFileName('');
+    setFileSize('');
+    const input = document.getElementById('resumeInput');
+    if (input) input.value = '';
+  };
+
+  const reuploadFile = () => {
+    const input = document.getElementById('resumeInput');
+    if (input) input.click();
+  };
+
+  function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+  }
+
   if (loading) return <div className="container mx-auto px-4 py-6">Loading...</div>;
   if (!job) return <div className="container mx-auto px-4 py-6">Job not found.</div>;
 
   return (
-    <main className="container mx-auto px-4 py-6">
-      <div className="mb-6">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-          <Link to="/user-dashboard" className="hover:text-primary">Dashboard</Link>
-          <i data-lucide="chevron-right" className="h-4 w-4"></i>
-          <span className="text-foreground">{job.title}</span>
-        </div>
-        <h1 className="text-3xl font-bold mb-2">{job.title}</h1>
-        <p className="text-muted-foreground">{job.company?.name} • {job.location} • {job.salaryMin ? `$${job.salaryMin}` : ''}{job.salaryMax ? ` - $${job.salaryMax}` : ''}</p>
-      </div>
+    <main className="container mx-auto px-4 py-8">
+      {/* Breadcrumb */}
+      <nav className="mb-6 flex items-center gap-2 text-sm text-[hsl(var(--color-muted-foreground))]">
+        <Link to="/jobs" className="hover:text-[hsl(var(--color-foreground))]">Jobs</Link>
+        <FiChevronRight className="h-4 w-4" />
+        <Link to="/jobs" className="hover:text-[hsl(var(--color-foreground))]">{job.category || 'Technology'}</Link>
+        <FiChevronRight className="h-4 w-4" />
+        <span className="text-[hsl(var(--color-foreground))]">{job.title}</span>
+      </nav>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 space-y-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Main Column */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Job Header */}
           <div className="card p-6">
-            <h3 className="font-semibold mb-2">Job description</h3>
-            <div className="prose max-w-none text-sm text-muted-foreground" dangerouslySetInnerHTML={{ __html: job.description || '<p>No description provided.</p>' }} />
-          </div>
+            <div className="flex items-start gap-4">
+              <div className="shrink-0">
+                <div className="h-16 w-16 rounded-lg bg-[hsl(var(--color-secondary))] flex items-center justify-center text-white">
+                  <BiBuilding className="h-8 w-8 text-white" />
+                </div>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
+                  <div>
+                    <h1 className="text-2xl font-semibold mb-1">{job.title}</h1>
+                    <p className="text-sm text-[hsl(var(--color-muted-foreground))] mb-2">
+                      <Link to={`/companies/${job.company?.id}`} className="hover:text-[hsl(var(--color-primary))]">{job.company?.name}</Link>
+                    </p>
+                  </div>
+                  <div className="text-sm text-[hsl(var(--color-muted-foreground))]">
+                    <span className="inline-flex items-center gap-2"><FiMapPin className="h-4 w-4" /> {job.location}</span>
+                  </div>
+                </div>
 
-          <div className="card p-6">
-            <h3 className="font-semibold mb-2">Responsibilities & Requirements</h3>
-            <div className="text-sm text-muted-foreground">
-              <div dangerouslySetInnerHTML={{ __html: job.requirements || '<p>Not specified.</p>' }} />
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-sm text-[hsl(var(--color-muted-foreground))] mb-4">
+                  <div className="flex items-center gap-2"><FiBriefcase className="h-4 w-4" /> <span>{job.type || 'Full-time'}</span></div>
+                  <div className="flex items-center gap-2"><FiDollarSign className="h-4 w-4" /> <span>{job.salaryMin || job.salaryMax ? `${job.salaryMin ? `$${job.salaryMin}` : ''}${job.salaryMax ? ` - $${job.salaryMax}` : ''}` : '$120k - $180k / year'}</span></div>
+                  <div className="flex items-center gap-2"><FiClock className="h-4 w-4" /> <span>{job.deadline ? new Date(job.deadline).toLocaleDateString() : 'Open'}</span></div>
+                </div>
+
+                <div className="prose prose-sm max-w-none space-y-4 text-[hsl(var(--color-foreground))]" dangerouslySetInnerHTML={{ __html: job.description || '<p>No description provided.</p>' }} />
+              </div>
             </div>
           </div>
 
+          {/* Job Overview */}
+          <div className="card p-6">
+            <h2 className="text-xl font-semibold mb-4">Job Overview</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="flex items-start gap-3">
+                <FiBriefcase className="h-5 w-5 text-[hsl(var(--color-muted-foreground))] mt-1" />
+                <div>
+                  <div className="text-sm text-[hsl(var(--color-muted-foreground))]">Job Type</div>
+                  <div className="font-medium">{job.type || 'Full-time'}</div>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <FiMapPin className="h-5 w-5 text-[hsl(var(--color-muted-foreground))] mt-1" />
+                <div>
+                  <div className="text-sm text-[hsl(var(--color-muted-foreground))]">Location</div>
+                  <div className="font-medium">{job.location || 'San Francisco, CA (Remote)'}</div>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <FiDollarSign className="h-5 w-5 text-[hsl(var(--color-muted-foreground))] mt-1" />
+                <div>
+                  <div className="text-sm text-[hsl(var(--color-muted-foreground))]">Salary</div>
+                  <div className="font-medium">{job.salaryMin || job.salaryMax ? `${job.salaryMin ? `$${job.salaryMin}` : ''}${job.salaryMax ? ` - $${job.salaryMax}` : ''}` : '$120k - $180k / year'}</div>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <FiClock className="h-5 w-5 text-[hsl(var(--color-muted-foreground))] mt-1" />
+                <div>
+                  <div className="text-sm text-[hsl(var(--color-muted-foreground))]">Application Deadline</div>
+                  <div className="font-medium">{job.deadline ? new Date(job.deadline).toLocaleDateString() : 'December 31, 2025'}</div>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <FiUsers className="h-5 w-5 text-[hsl(var(--color-muted-foreground))] mt-1" />
+                <div>
+                  <div className="text-sm text-[hsl(var(--color-muted-foreground))]">Applicants</div>
+                  <div className="font-medium">{job.applicants || 47}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Job Description & Skills */}
+          <div className="card p-6">
+            <h2 className="text-xl font-semibold mb-4">Job Description</h2>
+            <div className="prose prose-sm max-w-none space-y-4 text-[hsl(var(--color-foreground))]" dangerouslySetInnerHTML={{ __html: job.description || '<p>No description provided.</p>' }} />
+          </div>
+
+          <div className="card p-6">
+            <h2 className="text-xl font-semibold mb-4">Required Skills</h2>
+            <div className="flex flex-wrap gap-2">
+              {(job.skills && job.skills.length > 0 ? job.skills : ['React','Node.js','TypeScript','JavaScript','REST API','PostgreSQL']).map((s, i) => (
+                <span key={i} className="badge badge-secondary">{s}</span>
+              ))}
+            </div>
+          </div>
+
+          {/* Similar Jobs */}
           {similar.length > 0 && (
             <div className="card p-6">
-              <h3 className="font-semibold mb-2">Similar Jobs</h3>
-              <ul className="space-y-3">
-                {similar.map(s => (
-                  <li key={s.id} className="flex items-center justify-between">
-                    <div>
-                      <Link to={`/jobs/${s.slug}`} className="font-medium">{s.title}</Link>
-                      <div className="text-sm text-muted-foreground">{s.company?.name} • {s.location}</div>
+              <h2 className="text-xl font-semibold mb-4">Similar Jobs</h2>
+              <div className="space-y-4">
+                {similar.map((s) => (
+                  <article key={s.id} className="border-b border-[hsl(var(--color-border))] pb-4 last:border-0 last:pb-0">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Link to={`/jobs/${s.slug}`} className="font-medium hover:text-[hsl(var(--color-primary))]">{s.title}</Link>
+                        <div className="text-sm text-[hsl(var(--color-muted-foreground))]">{s.company?.name} • {s.location}</div>
+                      </div>
+                      <Link to={`/jobs/${s.slug}`} className="btn btn-outline text-sm">View Details</Link>
                     </div>
-                    <Link to={`/jobs/${s.slug}`} className="btn btn-outline text-sm">View</Link>
-                  </li>
+                  </article>
                 ))}
-              </ul>
+              </div>
             </div>
           )}
         </div>
 
-        <aside className="lg:col-span-1">
+        {/* Sidebar Column */}
+        <div className="lg:col-span-1 space-y-6">
           <div className="card p-6">
-            <h3 className="font-semibold mb-2">Apply</h3>
-            <div className="mb-4">
-              <div className="text-sm text-muted-foreground mb-2">Applicants: <strong>{job.applicants || 0}</strong></div>
-              <button onClick={openApply} className="btn btn-primary w-full">Apply Now</button>
+            <div className="text-center pb-4 border-b border-[hsl(var(--color-border))]">
+              <div className="text-3xl font-semibold text-[hsl(var(--color-foreground))]">{job.salaryMin || job.salaryMax ? `${job.salaryMin ? `$${job.salaryMin}` : ''}${job.salaryMax ? ` - $${job.salaryMax}` : ''}` : '$120k - $180k'}</div>
+              <div className="text-sm text-[hsl(var(--color-muted-foreground))] mt-1">Per year</div>
+              <div className="my-4">
+                <button onClick={openApply} className="btn btn-primary w-full flex items-center justify-center gap-2">
+                  <FiSend className="h-4 w-4" />
+                  Apply Now
+                </button>
+              </div>
             </div>
-            <div className="text-sm text-muted-foreground">
-              <div><strong>Type:</strong> {job.type}</div>
-              <div><strong>Experience:</strong> {job.experienceLevel}</div>
-              <div><strong>Deadline:</strong> {job.deadline ? new Date(job.deadline).toLocaleDateString() : 'Open'}</div>
+
+            <div className="pt-4 border-t border-[hsl(var(--color-border))] space-y-3">
+              <div className="flex items-center justify-between text-sm text-[hsl(var(--color-muted-foreground))]">
+                <span>Applicants</span>
+                <strong>{job.applicants || 47}</strong>
+              </div>
+              <div className="flex items-center justify-between text-sm text-[hsl(var(--color-muted-foreground))]">
+                <span>Posted</span>
+                <strong>{job.postedAt ? new Date(job.postedAt).toLocaleDateString() : '2 days ago'}</strong>
+              </div>
             </div>
           </div>
-        </aside>
+
+          <div className="card p-6">
+            <h3 className="text-lg font-semibold mb-4">About Company</h3>
+            <div className="space-y-4">
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 rounded-md bg-[hsl(var(--color-secondary))] flex items-center justify-center text-white">
+                  <BiBuilding className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <div className="font-medium">{job.company?.name}</div>
+                  <div className="text-sm text-[hsl(var(--color-muted-foreground))]">{job.company?.location}</div>
+                </div>
+              </div>
+
+              <p className="text-sm text-[hsl(var(--color-muted-foreground))]">{job.company?.description}</p>
+
+              <div className="space-y-2 pt-2">
+                <div className="text-sm"><strong>Website:</strong> <a href={job.company?.website} className="hover:text-[hsl(var(--color-primary))]">{job.company?.website}</a></div>
+                <div className="text-sm"><strong>Size:</strong> {job.company?.size || '—'}</div>
+              </div>
+
+              <a className="btn btn-outline w-full mt-4" href={`/companies/${job.company?.id}`}>View Company</a>
+            </div>
+          </div>
+
+          <div className="card p-6">
+            <h3 className="text-lg font-semibold mb-4">Share this Job</h3>
+            <div className="flex gap-2">
+              <button className="btn btn-ghost" title="Share on LinkedIn"><FaLinkedin /></button>
+              <button className="btn btn-ghost" title="Share on Twitter"><FaTwitter /></button>
+              <button className="btn btn-ghost" title="Share on Facebook"><FaFacebook /></button>
+              <button className="btn btn-ghost" title="Copy link"><FiEye /></button>
+            </div>
+          </div>
+
+          <button className="w-full text-sm text-[hsl(var(--color-muted-foreground))] hover:text-[hsl(var(--color-foreground))] flex items-center justify-center gap-2">
+            <FiFlag className="h-4 w-4" />
+            Report this job
+          </button>
+        </div>
       </div>
 
+      {/* Apply Dialog */}
       {applyOpen && (
-        <div className="fixed inset-0 z-50 bg-black/40 flex items-center justify-center p-4">
-          <div className="card max-w-2xl w-full p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Apply for {job.title}</h3>
-              <button onClick={closeApply} className="text-muted-foreground">Close</button>
-            </div>
-            <div className="space-y-4">
-              <label className="label">Cover Letter</label>
-              <textarea value={coverLetter} onChange={e => setCoverLetter(e.target.value)} className="textarea w-full" rows={6} placeholder="Write a brief cover letter..." />
-              <div className="flex items-center justify-end gap-3">
-                <button onClick={closeApply} className="btn btn-outline">Cancel</button>
-                <button onClick={submitApplication} disabled={submitting} className="btn btn-primary">{submitting ? 'Applying...' : 'Submit Application'}</button>
+        <div id="applyDialog" className="fixed inset-0 bg-black/50 z-50 items-center justify-center p-4 flex" onClick={(e) => { if (e.target.id === 'applyDialog') closeApply(); }}>
+          <div className="card max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 space-y-6">
+              <div className="flex items-start justify-between">
+                <div>
+                  <h2 className="text-2xl font-semibold">Apply for {job.title}</h2>
+                  <p className="text-sm text-[hsl(var(--color-muted-foreground))] mt-1">Please attach your resume (PDF) and a short cover letter.</p>
+                </div>
+                <button onClick={closeApply} className="btn-ghost p-2"><FiX className="h-5 w-5" /></button>
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-sm font-medium">Resume <span className="text-red-500">*</span></label>
+
+                <input id="resumeInput" onChange={handleFileChange} accept="application/pdf" type="file" className="hidden" />
+
+                {!filePreviewVisible ? (
+                  <div id="uploadArea" onClick={handleUploadAreaClick} className="border-2 border-dashed border-[hsl(var(--color-border))] rounded-lg p-8 text-center hover:border-[hsl(var(--color-primary))] transition-colors cursor-pointer">
+                    <div className="flex flex-col items-center gap-2">
+                      <div className="text-[hsl(var(--color-muted-foreground))] text-sm">Click to upload or drag and drop your resume (PDF)</div>
+                      <div className="text-xs text-[hsl(var(--color-muted-foreground))]">Max size 5MB</div>
+                    </div>
+                  </div>
+                ) : (
+                  <div id="filePreview" className="border border-[hsl(var(--color-border))] rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium">{fileName}</div>
+                        <div className="text-sm text-[hsl(var(--color-muted-foreground))]">{fileSize}</div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button onClick={reuploadFile} className="btn btn-outline text-sm">Reupload</button>
+                        <button onClick={removeFile} className="btn btn-ghost text-sm">Remove</button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="space-y-3">
+                <label htmlFor="coverMessage" className="text-sm font-medium">Cover Message <span className="text-[hsl(var(--color-muted-foreground))]">(Optional)</span></label>
+                <textarea id="coverMessage" rows={5} value={coverLetter} onChange={e => {
+                  const val = e.target.value; if (val.length > 500) setCoverLetter(val.substring(0,500)); else setCoverLetter(val);
+                }} className="input resize-none" placeholder="Write a brief message about why you're a great fit for this role..." />
+                <p className="text-xs text-[hsl(var(--color-muted-foreground))]"><span id="charCount">{coverLetter.length}</span>/500 characters</p>
+              </div>
+
+              <div className="flex gap-3 pt-4 border-t border-[hsl(var(--color-border))]">
+                <button onClick={closeApply} className="btn btn-outline flex-1">Cancel</button>
+                <button onClick={submitApplication} disabled={submitting} className="btn btn-primary flex-1"><FiSend className="h-4 w-4 mr-2" />{submitting ? 'Applying...' : 'Submit Application'}</button>
               </div>
             </div>
           </div>
