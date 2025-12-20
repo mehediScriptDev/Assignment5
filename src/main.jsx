@@ -18,6 +18,7 @@ import ManageJobs from './Pages/Company/ManageJobs'
 import Applicants from './Pages/Company/Applicants'
 import CompanyProfile from './Pages/Company/CompanyProfile'
 import CompanySettings from './Pages/Company/CompanySettings'
+import RequireAuth from './components/RequireAuth'
 import { AuthContext } from './context/AuthContext'
 import { AuthProvider } from './context/AuthContext'
 
@@ -32,18 +33,18 @@ const router = createBrowserRouter([
       { path: 'register-company', element: <RegisterCompany /> },
       // Job Seeker pages
       { path: 'jobs/:slug', element: <JobDetails /> },
-      { path: 'applied-jobs', element: <AppliedJobs /> },
-      { path: 'user-dashboard', element: <UserDashboard /> },
+      { path: 'applied-jobs', element: <RequireAuth role="USER"><AppliedJobs /></RequireAuth> },
+      { path: 'user-dashboard', element: <RequireAuth role="USER"><UserDashboard /></RequireAuth> },
       { path: 'user-profile', element: <UserProfile /> },
-      { path: 'edit-user-profile', element: <EditUserProfile /> },
+      { path: 'edit-user-profile', element: <RequireAuth role="USER"><EditUserProfile /></RequireAuth> },
 
       // Company pages
-      { path: 'company/dashboard', element: <CompanyDashboard /> },
-      { path: 'company/create-job', element: <CreateJob /> },
-      { path: 'company/manage-jobs', element: <ManageJobs /> },
-      { path: 'company/applicants/:jobId?', element: <Applicants /> },
+      { path: 'company/dashboard', element: <RequireAuth role="COMPANY"><CompanyDashboard /></RequireAuth> },
+      { path: 'company/create-job', element: <RequireAuth role="COMPANY"><CreateJob /></RequireAuth> },
+      { path: 'company/manage-jobs', element: <RequireAuth role="COMPANY"><ManageJobs /></RequireAuth> },
+      { path: 'company/applicants/:jobId?', element: <RequireAuth role="COMPANY"><Applicants /></RequireAuth> },
       { path: 'company/profile', element: <CompanyProfile /> },
-      { path: 'company/settings', element: <CompanySettings /> },
+      { path: 'company/settings', element: <RequireAuth role="COMPANY"><CompanySettings /></RequireAuth> },
     ],
   },
 ]);

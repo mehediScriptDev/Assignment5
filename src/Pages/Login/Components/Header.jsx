@@ -1,5 +1,6 @@
-import React from "react";
-import { Link } from 'react-router';
+import React, { useContext } from "react";
+import { Link, useNavigate } from 'react-router';
+import { AuthContext } from '../../../context/AuthContext';
 
 const Header = () => {
   return (
@@ -13,12 +14,36 @@ const Header = () => {
             </Link>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">
-              Don't have an account?
-            </span>
-            <Link to="/register" className="btn btn-ghost text-sm">
-              Sign Up
-            </Link>
+            {(() => {
+              const auth = useContext(AuthContext);
+              const navigate = useNavigate();
+
+              if (auth && auth.user) {
+                const role = auth.user.role;
+                return (
+                  <>
+                    {role === 'COMPANY' ? (
+                      <>
+                        <Link to="/company/create-job" className="btn btn-primary text-sm">Post a Job</Link>
+                        <Link to="/company/dashboard" className="btn btn-ghost text-sm">Dashboard</Link>
+                      </>
+                    ) : (
+                      <>
+                        <Link to="/user-dashboard" className="btn btn-ghost text-sm">Dashboard</Link>
+                      </>
+                    )}
+                    <button onClick={() => { auth.logout(); navigate('/'); }} className="btn btn-ghost text-sm">Sign Out</button>
+                  </>
+                );
+              }
+
+              return (
+                <>
+                  <span className="text-sm text-muted-foreground">Don't have an account?</span>
+                  <Link to="/register" className="btn btn-ghost text-sm">Sign Up</Link>
+                </>
+              );
+            })()}
           </div>
         </div>
       </header>
