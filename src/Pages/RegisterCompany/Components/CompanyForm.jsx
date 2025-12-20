@@ -1,6 +1,6 @@
 import React, { useState, useContext } from 'react';
-import client from '../../../../src/api/client';
-import { AuthContext } from '../../../../src/context/AuthContext';
+import client from '../../../api/client';
+import { AuthContext } from '../../../context/AuthContext';
 import { useNavigate } from 'react-router';
 
 const CompanyForm = () => {
@@ -35,15 +35,22 @@ const CompanyForm = () => {
                 location,
                 description
             };
+            console.debug('Company register payload:', payload);
             const res = await client.post('/auth/register', payload);
             if (res.data && res.data.success) {
                 auth.register(res.data);
                 navigate('/');
             } else {
-                alert(res.data?.message || 'Registration failed');
+                const msg = res.data?.message || 'Registration failed';
+                if (msg.toLowerCase().includes('user already exists')) {
+                    alert(`${msg}. If you already have an account try signing in instead (choose Employer).`);
+                } else {
+                    alert(msg);
+                }
             }
         } catch (err) {
             console.error('Company register error:', err);
+            console.error('Company register response:', err?.response?.data);
             const serverMessage = err?.response?.data?.message;
             const serverBody = err?.response?.data;
             if (serverMessage) {

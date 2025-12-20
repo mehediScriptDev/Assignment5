@@ -17,6 +17,7 @@ const LoginForm = () => {
     e.preventDefault();
     setLoading(true);
     try {
+      console.debug('Login payload:', { email, role });
       const res = await client.post('/auth/login', { email, password, role });
       if (res.data && res.data.success) {
         auth.login(res.data);
@@ -25,7 +26,8 @@ const LoginForm = () => {
         alert(res.data?.message || 'Login failed');
       }
     } catch (err) {
-      console.error(err);
+      console.error('Login error:', err);
+      console.error('Login response:', err?.response?.data);
       alert(err?.response?.data?.message || 'Login error');
     } finally {
       setLoading(false);
