@@ -13,7 +13,7 @@ const Home = () => {
             <section className="container mx-auto px-4 mb-8">
                 <div className="card p-6 rounded-lg">
                     <SearchBar />
-                    <div className="mt-4 border-t pt-4">
+                    <div className="mt-4 pt-4">
                         <Filters />
                         <div className="mt-2 text-sm text-muted-foreground"> <button className="underline">Clear All</button></div>
                     </div>

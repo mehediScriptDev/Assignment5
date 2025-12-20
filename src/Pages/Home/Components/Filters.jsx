@@ -1,14 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 
-const Dropdown = ({ id, label, children }) => {
+const Dropdown = ({ id, label, children, isOpen, onToggle }) => {
     return (
-        <div className="dropdown">
-            <button data-dropdown-for={id} className="btn btn-outline text-xs h-8 px-3 flex items-center" onClick={() => window.toggleDropdown && window.toggleDropdown(id)}>
+        <div className="dropdown relative">
+            <button data-dropdown-for={id} className="btn btn-outline text-xs h-8 px-3 flex items-center" onClick={() => onToggle && onToggle(id)}>
                 <i data-lucide="filter" className="h-3 w-3 mr-2"></i>
                 {label}
                 <i data-lucide="chevron-down" className="ml-2 h-3 w-3"></i>
             </button>
-            <div id={id} className="dropdown-content card p-2">
+            <div id={id} className={`dropdown-content card p-2 absolute mt-2 ${isOpen ? '' : 'hidden'}`}>
                 {children}
             </div>
         </div>
@@ -16,6 +16,11 @@ const Dropdown = ({ id, label, children }) => {
 }
 
 const Filters = () => {
+    const [openId, setOpenId] = useState(null);
+
+    const toggle = (id) => {
+        setOpenId(prev => prev === id ? null : id);
+    };
     const checkboxItem = (text) => (
         <label className="flex items-center gap-2 p-2 hover:bg-accent rounded cursor-pointer">
             <input type="checkbox" className="rounded border-input" />
@@ -27,7 +32,7 @@ const Filters = () => {
         <div className="flex flex-wrap items-center gap-2 pt-2 border-t border-border">
             <span className="text-sm font-medium text-muted-foreground mr-2">Filters:</span>
 
-            <Dropdown id="jobTypeDropdown" label="Job Type">
+            <Dropdown id="jobTypeDropdown" label="Job Type" isOpen={openId === 'jobTypeDropdown'} onToggle={toggle}>
                 <div className="space-y-1">
                     {checkboxItem('Full-time')}
                     {checkboxItem('Part-time')}
@@ -36,7 +41,7 @@ const Filters = () => {
                 </div>
             </Dropdown>
 
-            <Dropdown id="experienceDropdown" label="Experience Level">
+            <Dropdown id="experienceDropdown" label="Experience Level" isOpen={openId === 'experienceDropdown'} onToggle={toggle}>
                 <div className="space-y-1">
                     {checkboxItem('Entry Level')}
                     {checkboxItem('Mid Level')}
@@ -45,7 +50,7 @@ const Filters = () => {
                 </div>
             </Dropdown>
 
-            <Dropdown id="salaryDropdown" label="Salary Range">
+            <Dropdown id="salaryDropdown" label="Salary Range" isOpen={openId === 'salaryDropdown'} onToggle={toggle}>
                 <div className="space-y-1">
                     {checkboxItem('$0 - $50k')}
                     {checkboxItem('$50k - $100k')}
@@ -54,7 +59,7 @@ const Filters = () => {
                 </div>
             </Dropdown>
 
-            <Dropdown id="skillsDropdown" label="Skills">
+            <Dropdown id="skillsDropdown" label="Skills" isOpen={openId === 'skillsDropdown'} onToggle={toggle}>
                 <div className="space-y-1">
                     {checkboxItem('JavaScript')}
                     {checkboxItem('React')}

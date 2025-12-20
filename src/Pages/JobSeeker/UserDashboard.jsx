@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { Link } from 'react-router';
 import client from '../../api/client';
 import { AuthContext } from '../../context/AuthContext';
-import { FiBriefcase, FiMapPin, FiUsers } from 'react-icons/fi';
+import { FiBriefcase, FiMapPin, FiUsers, FiUser, FiEdit2, FiFileText, FiBookmark, FiSettings } from 'react-icons/fi';
 
 const UserDashboard = () => {
   const [applications, setApplications] = useState([]);
@@ -196,11 +196,36 @@ const UserDashboard = () => {
           <div className="card p-6 mb-6">
             <h3 className="font-semibold mb-4">Quick Actions</h3>
             <ul className="space-y-3">
-              <li><Link to="/user-profile" className="hover:text-primary">View Profile</Link></li>
-              <li><Link to="/edit-user-profile" className="hover:text-primary">Edit Profile</Link></li>
-              <li><Link to="/applied-jobs" className="hover:text-primary">My Applications</Link></li>
-              <li><Link to="#" className="hover:text-primary">Saved Jobs</Link></li>
-              <li><Link to="#" className="hover:text-primary">Settings</Link></li>
+              <li>
+                <Link to="/user-profile" className="flex items-center gap-3 text-sm hover:text-primary">
+                  <FiUser className="text-primary" size={18} />
+                  <span>View Profile</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/edit-user-profile" className="flex items-center gap-3 text-sm hover:text-primary">
+                  <FiEdit2 className="text-primary" size={18} />
+                  <span>Edit Profile</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/applied-jobs" className="flex items-center gap-3 text-sm hover:text-primary">
+                  <FiFileText className="text-primary" size={18} />
+                  <span>My Applications</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="#" className="flex items-center gap-3 text-sm hover:text-primary">
+                  <FiBookmark className="text-primary" size={18} />
+                  <span>Saved Jobs</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="#" className="flex items-center gap-3 text-sm hover:text-primary">
+                  <FiSettings className="text-primary" size={18} />
+                  <span>Settings</span>
+                </Link>
+              </li>
             </ul>
           </div>
 
