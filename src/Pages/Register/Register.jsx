@@ -34,14 +34,10 @@ const Register = () => {
 
             if (field.type === 'password') {
                 field.type = 'text';
-                if (icon) icon.setAttribute('data-lucide', 'eye-off');
+                if (icon) icon.dataset.toggled = 'true';
             } else {
                 field.type = 'password';
-                if (icon) icon.setAttribute('data-lucide', 'eye');
-            }
-
-            if (window.lucide && window.lucide.createIcons) {
-                window.lucide.createIcons();
+                if (icon) icon.dataset.toggled = 'false';
             }
         };
 
@@ -64,7 +60,7 @@ const Register = () => {
                     signupLink.href = '/register-company';
             }
 
-            if (window.lucide && window.lucide.createIcons) window.lucide.createIcons();
+            // No lucide runtime usage — icons are handled by react-icons or converted components.
         };
 
         return () => {

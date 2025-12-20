@@ -1,53 +1,52 @@
 import React, { useContext } from "react";
-import { Link, useNavigate } from 'react-router';
+import { Link, NavLink, useNavigate } from 'react-router';
 import { AuthContext } from '../../../context/AuthContext';
+import { FiBriefcase } from 'react-icons/fi';
 
 const Header = () => {
+  const auth = useContext(AuthContext);
+  const navigate = useNavigate();
+
+  const user = auth && auth.user;
+  const name = user?.name || 'User';
+  const initials = name.split(' ').map(n => n[0]).slice(0,2).join('').toUpperCase();
+
   return (
-    <div>
-      <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
-        <div className="container mx-auto flex h-16 items-center justify-between px-4">
-          <div className="flex items-center gap-8">
-            <Link to="/" className="flex items-center space-x-2">
-              <i data-lucide="briefcase" className="h-8 w-8 text-primary"></i>
-              <span className="text-xl font-bold">LWS Job Portal</span>
-            </Link>
-          </div>
-          <div className="flex items-center gap-4">
-            {(() => {
-              const auth = useContext(AuthContext);
-              const navigate = useNavigate();
+    <header className="sticky top-0 z-50 w-full border-b border-border bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60">
+      <div className="container mx-auto flex h-16 items-center px-4">
+        {/* Left: logo + nav links */}
+        <div className="flex items-center gap-6">
+          <Link to="/" className="flex items-center space-x-2">
+            <FiBriefcase className="h-8 w-8 text-primary" />
+            <span className="text-xl font-bold">LWS Job Portal</span>
+          </Link>
 
-              if (auth && auth.user) {
-                const role = auth.user.role;
-                return (
-                  <>
-                    {role === 'COMPANY' ? (
-                      <>
-                        <Link to="/company/create-job" className="btn btn-primary text-sm">Post a Job</Link>
-                        <Link to="/company/dashboard" className="btn btn-ghost text-sm">Dashboard</Link>
-                      </>
-                    ) : (
-                      <>
-                        <Link to="/user-dashboard" className="btn btn-ghost text-sm">Dashboard</Link>
-                      </>
-                    )}
-                    <button onClick={() => { auth.logout(); navigate('/'); }} className="btn btn-ghost text-sm">Sign Out</button>
-                  </>
-                );
-              }
-
-              return (
-                <>
-                  <span className="text-sm text-muted-foreground">Don't have an account?</span>
-                  <Link to="/register" className="btn btn-ghost text-sm">Sign Up</Link>
-                </>
-              );
-            })()}
-          </div>
+          <nav className="hidden sm:flex items-center gap-6">
+            <NavLink to="/" className={({ isActive }) => `text-sm ${isActive ? 'text-primary font-medium' : 'text-muted-foreground'} hover:text-primary`}>Jobs</NavLink>
+            <NavLink to="/user-dashboard" className={({ isActive }) => `text-sm ${isActive ? 'text-primary font-medium' : 'text-muted-foreground'} hover:text-primary`}>Dashboard</NavLink>
+            <NavLink to="/applied-jobs" className={({ isActive }) => `text-sm ${isActive ? 'text-primary font-medium' : 'text-muted-foreground'} hover:text-primary`}>My Applications</NavLink>
+          </nav>
         </div>
-      </header>
-    </div>
+
+        {/* Spacer to push avatar to right end */}
+        <div className="flex-1" />
+
+        {/* Right: avatar / auth actions */}
+        <div className="flex items-center justify-end">
+          {user ? (
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-white border border-border flex items-center justify-center text-sm text-muted-foreground">{initials}</div>
+              <span className="text-sm hidden sm:inline text-muted-foreground">{name}</span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-3">
+              <Link to="/login" className="text-sm text-muted-foreground hover:text-primary">Sign In</Link>
+              <Link to="/register" className="btn btn-primary text-sm">Get Started</Link>
+            </div>
+          )}
+        </div>
+      </div>
+    </header>
   );
 };
 

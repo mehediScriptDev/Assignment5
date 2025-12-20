@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
+import { FiFilter, FiChevronDown } from 'react-icons/fi';
 
 const Dropdown = ({ id, label, children, isOpen, onToggle }) => {
     return (
         <div className="dropdown relative">
             <button data-dropdown-for={id} className="btn btn-outline text-xs h-8 px-3 flex items-center" onClick={() => onToggle && onToggle(id)}>
-                <i data-lucide="filter" className="h-3 w-3 mr-2"></i>
+                <FiFilter className="h-3 w-3 mr-2" />
                 {label}
-                <i data-lucide="chevron-down" className="ml-2 h-3 w-3"></i>
+                <FiChevronDown className="ml-2 h-3 w-3" />
             </button>
             <div id={id} className={`dropdown-content card p-2 absolute mt-2 ${isOpen ? '' : 'hidden'}`}>
                 {children}
