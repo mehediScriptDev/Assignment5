@@ -39,7 +39,7 @@ const JobsList = () => {
         <div className="space-y-6">
           {jobs.map(job => (
             <article key={job.id} className="card p-6 rounded-lg">
-              <div className="flex items-start justify-between gap-4">
+              <div className="flex items-center justify-between gap-4">
                 <div className="flex items-start gap-4">
                   <div className="h-12 w-12 rounded-md bg-secondary flex items-center justify-center">
                     <i data-lucide="briefcase" className="h-6 w-6 text-primary"></i>

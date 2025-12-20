@@ -23,7 +23,10 @@ const RegisterForm = () => {
             const res = await client.post('/auth/register', payload);
             if (res.data && res.data.success) {
                 auth.register(res.data);
-                navigate('/');
+                // Redirect newly registered users to their dashboard
+                const userRole = res.data.data?.role || 'USER';
+                if (userRole === 'COMPANY') navigate('/company/dashboard');
+                else navigate('/user-dashboard');
             } else {
                 alert(res.data?.message || 'Registration failed');
             }

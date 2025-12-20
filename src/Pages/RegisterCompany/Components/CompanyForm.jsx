@@ -39,7 +39,8 @@ const CompanyForm = () => {
             const res = await client.post('/auth/register', payload);
             if (res.data && res.data.success) {
                 auth.register(res.data);
-                navigate('/');
+                // After company register, go to company dashboard
+                navigate('/company/dashboard');
             } else {
                 const msg = res.data?.message || 'Registration failed';
                 if (msg.toLowerCase().includes('user already exists')) {

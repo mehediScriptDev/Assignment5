@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import { Link } from 'react-router';
 import client from '../../api/client';
+import { AuthContext } from '../../context/AuthContext';
 
 const UserDashboard = () => {
   const [applications, setApplications] = useState([]);
@@ -25,7 +26,15 @@ const UserDashboard = () => {
       try {
         setLoadingRecs(true);
         const res = await client.get('/jobs/recommendations');
-        if (res.data && res.data.success) setRecommendations(res.data.data || []);
+        console.debug('Recommendations response:', res?.data);
+        if (res.data && res.data.success && Array.isArray(res.data.data) && res.data.data.length > 0) {
+          setRecommendations(res.data.data || []);
+        } else {
+          // Fallback: load general jobs so the dashboard still shows suggestions
+          console.debug('No recommendations returned; falling back to /jobs');
+          const fallback = await client.get('/jobs');
+          if (fallback.data && fallback.data.success) setRecommendations(fallback.data.data || []);
+        }
       } catch (e) {
         console.error('Failed to load recommendations', e);
       } finally {
@@ -49,23 +58,23 @@ const UserDashboard = () => {
     }
   };
 
+  const auth = useContext(AuthContext);
+  const name = auth?.user?.name || 'User';
+
   return (
     <main className="container mx-auto px-4 py-6">
       <div className="mb-6">
-        <h1 className="text-3xl font-bold mb-2">Dashboard</h1>
-        <p className="text-muted-foreground">Overview of your activity and recommended jobs.</p>
+        <h1 className="text-3xl font-bold mb-2">Welcome back, {name}! <span aria-hidden>👋</span></h1>
+        <p className="text-muted-foreground">Here's what's happening with your job search today.</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div>
+        <div className="lg:col-span-2">
           <div className="card p-6 mb-6">
-            <h3 className="font-semibold mb-2">Profile</h3>
-            <p className="text-sm text-muted-foreground mb-4">Complete your profile to get better matches.</p>
-            <Link to="/edit-user-profile" className="btn btn-primary">Edit Profile</Link>
-          </div>
-
-          <div className="card p-6">
-            <h3 className="font-semibold mb-2">Recent Applications</h3>
+            <div className="flex items-start justify-between">
+              <h3 className="font-semibold mb-0">Recent Applications</h3>
+              <Link to="/applied-jobs" className="text-sm text-muted-foreground hover:underline">View All</Link>
+            </div>
             {loadingApps ? (
               <p className="text-sm text-muted-foreground">Loading...</p>
             ) : applications.length === 0 ? (
@@ -97,7 +106,7 @@ const UserDashboard = () => {
 
                   return (
                     <article key={app.id} className="card p-4">
-                      <div className="flex items-start justify-between">
+                      <div className="flex items-center justify-between">
                         <div className="flex items-start gap-4">
                           <div className="h-10 w-10 rounded-md bg-secondary flex items-center justify-center">
                             <i data-lucide="briefcase" className="h-5 w-5 text-primary"></i>
@@ -131,10 +140,12 @@ const UserDashboard = () => {
               </div>
             )}
           </div>
-        </div>
 
-        <div className="card p-6 lg:col-span-2">
-          <h3 className="font-semibold mb-2">Recommended Jobs</h3>
+          <div className="card p-6 mt-6">
+            <div className="flex items-start justify-between">
+              <h3 className="font-semibold mb-0">Recommended for You</h3>
+              <Link to="/jobs" className="text-sm text-muted-foreground hover:underline">Browse All Jobs</Link>
+            </div>
           {loadingRecs ? (
             <p className="text-sm text-muted-foreground">Loading recommendations...</p>
           ) : recommendations.length === 0 ? (
@@ -156,7 +167,26 @@ const UserDashboard = () => {
               ))}
             </ul>
           )}
+          </div>
         </div>
+
+        <aside className="lg:col-span-1">
+          <div className="card p-6 mb-6">
+            <h3 className="font-semibold mb-4">Quick Actions</h3>
+            <ul className="space-y-3">
+              <li><Link to="/user-profile" className="hover:text-primary">View Profile</Link></li>
+              <li><Link to="/edit-user-profile" className="hover:text-primary">Edit Profile</Link></li>
+              <li><Link to="/applied-jobs" className="hover:text-primary">My Applications</Link></li>
+              <li><Link to="#" className="hover:text-primary">Saved Jobs</Link></li>
+              <li><Link to="#" className="hover:text-primary">Settings</Link></li>
+            </ul>
+          </div>
+
+          <div className="card p-4 bg-primary/5">
+            <h4 className="font-semibold mb-2">Pro Tip</h4>
+            <p className="text-sm text-muted-foreground">Applications submitted within 24 hours of posting have a 3x higher response rate.</p>
+          </div>
+        </aside>
       </div>
     </main>
   );

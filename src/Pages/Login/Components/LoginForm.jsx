@@ -21,7 +21,13 @@ const LoginForm = () => {
       const res = await client.post('/auth/login', { email, password, role });
       if (res.data && res.data.success) {
         auth.login(res.data);
-        navigate('/');
+        // Redirect users to their respective dashboards after login
+        const userRole = (res.data.data && res.data.data.role) || role;
+        if (userRole === 'COMPANY') {
+          navigate('/company/dashboard');
+        } else {
+          navigate('/user-dashboard');
+        }
       } else {
         alert(res.data?.message || 'Login failed');
       }
