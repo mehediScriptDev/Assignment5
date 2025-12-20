@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import client from '../../../api/client';
 import { Link } from 'react-router';
+import { FiBriefcase, FiUsers } from 'react-icons/fi';
 
 const JobsList = () => {
   const [jobs, setJobs] = useState([]);
@@ -41,12 +42,12 @@ const JobsList = () => {
             <article key={job.id} className="card p-6 rounded-lg">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-start gap-4">
-                  <div className="h-12 w-12 rounded-md bg-secondary flex items-center justify-center">
-                    <i data-lucide="briefcase" className="h-6 w-6 text-primary"></i>
-                  </div>
+                    <div className="h-12 w-12 rounded-md bg-secondary flex items-center justify-center">
+                      <FiBriefcase className="h-6 w-6 text-primary" />
+                    </div>
                   <div>
                     <h3 className="font-semibold text-lg">{job.title}</h3>
-                    <div className="text-sm text-muted-foreground mt-1">{job.company?.name} • {job.location} • Posted {job.postedAgo || '2 days ago'}</div>
+                    <div className="text-sm text-muted-foreground mt-1">{job.company?.name} • {job.location} • {job.postedAgo || '2 days ago'}</div>
                     <p className="text-sm text-muted-foreground mt-3 max-w-3xl">{job.description?.slice(0, 200) || job.summary || ''}</p>
 
                     <div className="mt-3 flex flex-wrap gap-2">
@@ -57,7 +58,7 @@ const JobsList = () => {
 
                     <div className="mt-3 flex items-center gap-4 text-sm text-muted-foreground">
                       <div className="font-semibold">{job.salaryMin || job.salaryMax ? `${job.salaryMin ? `$${job.salaryMin}` : ''}${job.salaryMin && job.salaryMax ? ' - ' : ''}${job.salaryMax ? `$${job.salaryMax}` : ''}` : ''}</div>
-                      <div className="flex items-center gap-2"><i data-lucide="users" className="h-4 w-4"></i>{job.applicants || 0} applicants</div>
+                      <div className="flex items-center gap-2"><FiUsers className="h-4 w-4" />{job.applicants || 0} applicants</div>
                     </div>
                   </div>
                 </div>

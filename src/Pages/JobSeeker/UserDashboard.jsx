@@ -2,6 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { Link } from 'react-router';
 import client from '../../api/client';
 import { AuthContext } from '../../context/AuthContext';
+import { FiBriefcase, FiMapPin, FiUsers } from 'react-icons/fi';
 
 const UserDashboard = () => {
   const [applications, setApplications] = useState([]);
@@ -109,13 +110,13 @@ const UserDashboard = () => {
                       <div className="flex items-center justify-between">
                         <div className="flex items-start gap-4">
                           <div className="h-10 w-10 rounded-md bg-secondary flex items-center justify-center">
-                            <i data-lucide="briefcase" className="h-5 w-5 text-primary"></i>
+                            <FiBriefcase className="h-5 w-5 text-primary" />
                           </div>
                           <div>
                             <h4 className="font-semibold text-lg">{job.title || 'Job Title'}</h4>
                             <div className="text-sm text-muted-foreground">{job.company?.name || ''}</div>
                             <div className="text-sm text-muted-foreground mt-2 flex items-center gap-3">
-                              <span className="flex items-center gap-2"><i data-lucide="map-pin" className="h-4 w-4"></i>{job.location || ''}</span>
+                              <span className="flex items-center gap-2"><FiMapPin className="h-4 w-4" />{job.location || ''}</span>
                               <span className="flex items-center gap-2">• Applied on {appliedDate}</span>
                               {salary && <span className="flex items-center gap-2">• {salary}</span>}
                             </div>
@@ -151,21 +152,42 @@ const UserDashboard = () => {
           ) : recommendations.length === 0 ? (
             <p className="text-sm text-muted-foreground">No recommendations available yet.</p>
           ) : (
-            <ul className="space-y-4">
+            <div className="space-y-4">
               {recommendations.map(job => (
-                <li key={job.id} className="border p-4 rounded flex items-start justify-between">
-                  <div>
-                    <Link to={`/jobs/${job.slug}`} className="font-semibold text-lg">{job.title}</Link>
-                    <div className="text-sm text-muted-foreground">{job.company?.name}</div>
-                    <div className="text-sm mt-2">{job.location} • {job.type}</div>
+                <article key={job.id} className="card p-6 rounded-lg">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-start gap-4">
+                      <div className="h-12 w-12 rounded-md bg-secondary flex items-center justify-center">
+                        <FiBriefcase className="h-6 w-6 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg"><Link to={`/jobs/${job.slug}`}>{job.title}</Link></h3>
+                        <div className="text-sm text-muted-foreground mt-1">{job.company?.name}</div>
+                        <p className="text-sm text-muted-foreground mt-3 max-w-3xl">{(job.description || job.summary || '').slice(0,200)}</p>
+
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {(job.skills || []).slice(0,5).map(s => (
+                            <span key={s} className="badge badge-outline text-xs">{s}</span>
+                          ))}
+                        </div>
+
+                        <div className="mt-3 flex items-center gap-4 text-sm text-muted-foreground">
+                          <div className="font-semibold">{job.salaryMin || job.salaryMax ? `${job.salaryMin ? `$${job.salaryMin}` : ''}${job.salaryMin && job.salaryMax ? ' - ' : ''}${job.salaryMax ? `$${job.salaryMax}` : ''}` : ''}</div>
+                          <div className="flex items-center gap-2"><FiUsers className="h-4 w-4" />{job.applicants || 0} applicants</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-col items-end justify-between gap-4">
+                      <div className="flex items-center gap-3">
+                        <Link to={`/jobs/${job.slug}`} className="btn btn-outline">View Details</Link>
+                        <Link to={`/jobs/${job.slug}`} className="btn btn-primary">Apply Now</Link>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex flex-col items-end gap-2">
-                    <Link to={`/jobs/${job.slug}`} className="btn btn-outline">View</Link>
-                    <Link to={`/jobs/${job.slug}`} className="btn btn-primary">Apply</Link>
-                  </div>
-                </li>
+                </article>
               ))}
-            </ul>
+            </div>
           )}
           </div>
         </div>
