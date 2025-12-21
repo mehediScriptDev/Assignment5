@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from 'react-router';
 
 const Footer = () => {
   return (
@@ -17,24 +18,14 @@ const Footer = () => {
               <h4 className="font-semibold mb-4">For Job Seekers</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>
-                  <a href="#" className="hover:text-foreground">
+                  <Link to="/" className="hover:text-foreground">
                     Browse Jobs
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-foreground">
-                    Companies
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-foreground">
-                    Career Advice
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-foreground">
-                    Salary Guide
-                  </a>
+                  <Link to="/coming-soon" className="hover:text-foreground">
+                    Career Resources
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -42,24 +33,14 @@ const Footer = () => {
               <h4 className="font-semibold mb-4">For Employers</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>
-                  <a href="#" className="hover:text-foreground">
+                  <Link to="/register-company" className="hover:text-foreground">
                     Post a Job
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-foreground">
-                    Browse Candidates
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-foreground">
-                    Pricing
-                  </a>
-                </li>
-                <li>
-                  <a href="#" className="hover:text-foreground">
+                  <Link to="/coming-soon" className="hover:text-foreground">
                     Employer Resources
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>
@@ -67,24 +48,24 @@ const Footer = () => {
               <h4 className="font-semibold mb-4">Company</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li>
-                  <a href="#" className="hover:text-foreground">
+                  <Link to="/coming-soon" className="hover:text-foreground">
                     About Us
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-foreground">
+                  <Link to="/coming-soon" className="hover:text-foreground">
                     Contact
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-foreground">
+                  <Link to="/coming-soon" className="hover:text-foreground">
                     Privacy Policy
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="#" className="hover:text-foreground">
+                  <Link to="/coming-soon" className="hover:text-foreground">
                     Terms of Service
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </div>

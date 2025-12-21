@@ -19,6 +19,7 @@ import Applicants from './Pages/Company/Applicants'
 import ApplicantDetail from './Pages/Company/ApplicantDetail'
 import CompanyProfile from './Pages/Company/CompanyProfile'
 import CompanySettings from './Pages/Company/CompanySettings'
+import ComingSoon from './Pages/ComingSoon'
 import RequireAuth from './components/RequireAuth'
 import HomeGuard from './components/HomeGuard'
 import { AuthContext } from './context/AuthContext'
@@ -51,6 +52,9 @@ const router = createBrowserRouter([
       { path: 'companies/:id', element: <CompanyProfile /> },
       { path: 'company/profile', element: <CompanyProfile /> },
       { path: 'company/settings', element: <RequireAuth role="COMPANY"><CompanySettings /></RequireAuth> },
+      
+      // Coming Soon page
+      { path: 'coming-soon', element: <ComingSoon /> },
     ],
   },
 ]);
