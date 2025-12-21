@@ -24,7 +24,7 @@ const RegisterForm = () => {
             const payload = { name, email, password, role: 'USER', phone, experience };
             const res = await client.post('/auth/register', payload);
             if (res.data && res.data.success) {
-                auth.register(res.data);
+                await auth.register(res.data);
                 // Redirect newly registered users to their dashboard
                 const userRole = res.data.data?.role || 'USER';
                 if (userRole === 'COMPANY') navigate('/company/dashboard');

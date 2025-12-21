@@ -1,8 +1,8 @@
-import React, { useEffect, useState, useContext } from 'react';
+import React, { useEffect, useState, useContext, useMemo } from 'react';
 import { Link } from 'react-router';
 import client from '../../api/client';
 import { AuthContext } from '../../context/AuthContext';
-import { FiBriefcase, FiMapPin, FiUsers, FiUser, FiEdit2, FiFileText } from 'react-icons/fi';
+import { FiBriefcase, FiMapPin, FiUsers, FiUser, FiEdit2, FiFileText, FiCheckCircle, FiClock, FiXCircle } from 'react-icons/fi';
 import { useToast } from '../../context/ToastContext';
 
 const UserDashboard = () => {
@@ -73,11 +73,70 @@ const UserDashboard = () => {
   const auth = useContext(AuthContext);
   const name = auth?.user?.name || 'User';
 
+  const stats = useMemo(() => {
+    const total = applications.length;
+    const pending = applications.filter(a => a.status === 'pending').length;
+    const accepted = applications.filter(a => a.status === 'accepted').length;
+    const rejected = applications.filter(a => a.status === 'rejected').length;
+    return { total, pending, accepted, rejected };
+  }, [applications]);
+
   return (
     <main className="container mx-auto px-4 py-6">
       <div className="mb-6">
         <h1 className="text-3xl font-bold mb-2">Welcome back, {name}! <span aria-hidden>👋</span></h1>
         <p className="text-muted-foreground">Here's what's happening with your job search today.</p>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="card p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground mb-1">Total Applications</p>
+              <p className="text-2xl font-bold">{stats.total}</p>
+            </div>
+            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <FiBriefcase className="h-6 w-6 text-primary" />
+            </div>
+          </div>
+        </div>
+
+        <div className="card p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground mb-1">Pending</p>
+              <p className="text-2xl font-bold">{stats.pending}</p>
+            </div>
+            <div className="h-12 w-12 rounded-full bg-yellow-500/10 flex items-center justify-center">
+              <FiClock className="h-6 w-6 text-yellow-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="card p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground mb-1">Accepted</p>
+              <p className="text-2xl font-bold">{stats.accepted}</p>
+            </div>
+            <div className="h-12 w-12 rounded-full bg-green-500/10 flex items-center justify-center">
+              <FiCheckCircle className="h-6 w-6 text-green-600" />
+            </div>
+          </div>
+        </div>
+
+        <div className="card p-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground mb-1">Rejected</p>
+              <p className="text-2xl font-bold">{stats.rejected}</p>
+            </div>
+            <div className="h-12 w-12 rounded-full bg-red-500/10 flex items-center justify-center">
+              <FiXCircle className="h-6 w-6 text-red-600" />
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

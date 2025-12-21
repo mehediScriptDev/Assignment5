@@ -16,9 +16,11 @@ import CompanyDashboard from './Pages/Company/CompanyDashboard'
 import CreateJob from './Pages/Company/CreateJob'
 import ManageJobs from './Pages/Company/ManageJobs'
 import Applicants from './Pages/Company/Applicants'
+import ApplicantDetail from './Pages/Company/ApplicantDetail'
 import CompanyProfile from './Pages/Company/CompanyProfile'
 import CompanySettings from './Pages/Company/CompanySettings'
 import RequireAuth from './components/RequireAuth'
+import HomeGuard from './components/HomeGuard'
 import { AuthContext } from './context/AuthContext'
 import { AuthProvider } from './context/AuthContext'
 import { ToastProvider } from './context/ToastContext'
@@ -28,13 +30,13 @@ const router = createBrowserRouter([
     path: '/',
     element: <Layout />,
     children: [
-      { index: true, element: <Home /> },
+      { index: true, element: <HomeGuard><Home /></HomeGuard> },
       { path: 'login', element: <Login /> },
       { path: 'register', element: <Register /> },
       { path: 'register-company', element: <RegisterCompany /> },
       // Job Seeker pages
       { path: 'jobs/:slug', element: <JobDetails /> },
-      { path: 'jobs', element: <Home /> },
+      { path: 'jobs', element: <HomeGuard><Home /></HomeGuard> },
       { path: 'applied-jobs', element: <RequireAuth role="USER"><AppliedJobs /></RequireAuth> },
       { path: 'user-dashboard', element: <RequireAuth role="USER"><UserDashboard /></RequireAuth> },
       { path: 'user-profile', element: <UserProfile /> },
@@ -45,6 +47,7 @@ const router = createBrowserRouter([
       { path: 'company/create-job', element: <RequireAuth role="COMPANY"><CreateJob /></RequireAuth> },
       { path: 'company/manage-jobs', element: <RequireAuth role="COMPANY"><ManageJobs /></RequireAuth> },
       { path: 'company/applicants/:jobId?', element: <RequireAuth role="COMPANY"><Applicants /></RequireAuth> },
+      { path: 'company/applicant/:applicationId', element: <RequireAuth role="COMPANY"><ApplicantDetail /></RequireAuth> },
       { path: 'companies/:id', element: <CompanyProfile /> },
       { path: 'company/profile', element: <CompanyProfile /> },
       { path: 'company/settings', element: <RequireAuth role="COMPANY"><CompanySettings /></RequireAuth> },

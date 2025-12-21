@@ -40,7 +40,7 @@ const CompanyForm = () => {
             console.debug('Company register payload:', payload);
             const res = await client.post('/auth/register', payload);
             if (res.data && res.data.success) {
-                auth.register(res.data);
+                await auth.register(res.data);
                 // After company register, go to company dashboard
                 navigate('/company/dashboard');
             } else {

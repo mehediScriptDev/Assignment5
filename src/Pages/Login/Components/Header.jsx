@@ -5,6 +5,13 @@ import { FiBriefcase, FiFilePlus, FiPlus } from 'react-icons/fi';
 import { FaUser } from 'react-icons/fa';
 import { BiBuilding } from 'react-icons/bi';
 
+const getFileUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith('http')) return path;
+  const baseUrl = import.meta.env.VITE_API_BASE?.replace('/api', '') || 'http://localhost:5000';
+  return `${baseUrl}${path}`;
+};
+
 const Header = () => {
   const auth = useContext(AuthContext);
   const navigate = useNavigate();
@@ -23,7 +30,7 @@ const Header = () => {
       <div className="container mx-auto flex h-16 items-center px-4">
         {/* Left: logo + nav links */}
         <div className="flex items-center gap-6">
-          <Link to="/" className="flex items-center space-x-2">
+          <Link to={user?.role === 'COMPANY' ? '/company/dashboard' : '/'} className="flex items-center space-x-2">
             <FiBriefcase className="h-8 w-8 text-primary" />
             <span className="text-xl font-bold">LWS Job Portal</span>
           </Link>
@@ -68,9 +75,15 @@ const Header = () => {
 
             {user && (
               <div className="flex items-center gap-3 ml-2">
-                <div className="h-9 w-9 rounded-full bg-white flex items-center justify-center border border-[hsl(var(--color-border))]">
+                <div className="h-9 w-9 rounded-full bg-secondary flex items-center justify-center border border-[hsl(var(--color-border))] overflow-hidden">
                   {user?.role === 'COMPANY' ? (
-                    <BiBuilding className="h-5 w-5 text-black" />
+                    user.company?.logoUrl ? (
+                      <img src={getFileUrl(user.company.logoUrl)} alt={user.company?.name || 'Company'} className="h-full w-full object-cover" />
+                    ) : (
+                      <BiBuilding className="h-5 w-5 text-black" />
+                    )
+                  ) : user.profilePictureUrl ? (
+                    <img src={getFileUrl(user.profilePictureUrl)} alt={user.name || 'User'} className="h-full w-full object-cover" />
                   ) : (
                     <FaUser className="h-5 w-5 text-black" />
                   )}

@@ -22,7 +22,7 @@ const LoginForm = () => {
       console.debug('Login payload:', { email, role });
       const res = await client.post('/auth/login', { email, password, role });
       if (res.data && res.data.success) {
-        auth.login(res.data);
+        await auth.login(res.data);
         // Redirect users to their respective dashboards after login
         const userRole = (res.data.data && res.data.data.role) || role;
         if (userRole === 'COMPANY') {

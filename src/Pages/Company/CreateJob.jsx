@@ -130,10 +130,11 @@ const CreateJob = () => {
       } finally {
         setInitialLoading(false);
       }
-        // call the loader when effect runs with a job id
-        loadJob();
-      }
-    }, [routerLocation.search, navigate, showToast]);
+    };
+    
+    // call the loader when effect runs with a job id
+    loadJob();
+  }, [routerLocation.search, navigate, showToast]);
 
     return (
       <div className="bg-background text-foreground antialiased">

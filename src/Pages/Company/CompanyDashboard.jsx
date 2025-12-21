@@ -14,10 +14,19 @@ import {
   FiCheck,
   FiDownload,
   FiList,
-  FiSettings
+  FiSettings,
+  FiX
 } from 'react-icons/fi';
 import { BiBuilding } from 'react-icons/bi';
 import { FaLightbulb } from 'react-icons/fa';
+
+// Helper to convert relative file paths to full URLs
+const getFileUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith('http')) return path;
+  const baseUrl = import.meta.env.VITE_API_BASE?.replace('/api', '') || 'http://localhost:5000';
+  return `${baseUrl}${path}`;
+};
 
 const CompanyDashboard = () => {
   const [stats, setStats] = useState(null);
@@ -29,6 +38,19 @@ const CompanyDashboard = () => {
   const [jobsLoading, setJobsLoading] = useState(true);
   const [applicants, setApplicants] = useState([]);
   const [applicantsLoading, setApplicantsLoading] = useState(true);
+
+  const handleStatusChange = async (appId, status) => {
+    try {
+      const res = await client.patch(`/applications/${appId}/status`, { status });
+      if (res.data && res.data.success) {
+        showToast && showToast(`Application ${status}`, { type: 'success' });
+        setApplicants(prev => prev.map(app => app.id === appId ? { ...app, status } : app));
+      }
+    } catch (err) {
+      console.error('Failed to update status', err);
+      showToast && showToast('Failed to update status', { type: 'error' });
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -90,7 +112,7 @@ const CompanyDashboard = () => {
       {/* Header removed — use global layout header instead */}
 
       {/* Page content */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 pt-6 pb-8">
         <div className="mb-8">
           <h1 className="text-3xl font-bold mb-2">Welcome back, TechCorp! <span aria-hidden>👋</span></h1>
           <p className="text-[hsl(var(--color-muted-foreground))]">Here's what's happening with your job postings today</p>
@@ -144,7 +166,7 @@ const CompanyDashboard = () => {
               <div className="p-6 border-b border-[hsl(var(--color-border))]">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-semibold">Recent Job Posts</h2>
-                  <button className="text-sm text-[hsl(var(--color-primary))] hover:underline">View All</button>
+                  <Link to="/company/manage-jobs" className="text-sm text-[hsl(var(--color-primary))] hover:underline">View All</Link>
                 </div>
               </div>
 
@@ -172,8 +194,8 @@ const CompanyDashboard = () => {
                           <span className="text-[hsl(var(--color-muted-foreground))]"><span className="font-semibold text-[hsl(var(--color-foreground))]">{job.applicants ?? 0}</span> applicants</span>
                         </div>
                         <div className="flex items-center gap-2">
-                          <Link to={`/jobs/${job.slug}`} className="btn btn-outline text-xs h-8"><FiEye className="h-3 w-3 mr-1" />View</Link>
-                          <Link to={`/company/manage-jobs?jobId=${job.id}`} className="btn btn-outline text-xs h-8"><FiEdit className="h-3 w-3 mr-1" />Edit</Link>
+                          <Link to={`/company/applicants/${job.id}`} className="btn btn-outline text-xs h-8"><FiEye className="h-3 w-3 mr-1" />View Applicants</Link>
+                          <Link to={`/company/create-job?jobId=${job.id}`} className="btn btn-outline text-xs h-8"><FiEdit className="h-3 w-3 mr-1" />Edit</Link>
                         </div>
                       </div>
                     </div>
@@ -186,7 +208,7 @@ const CompanyDashboard = () => {
               <div className="p-6 border-b border-[hsl(var(--color-border))]">
                 <div className="flex items-center justify-between">
                   <h2 className="text-xl font-semibold">Recent Applicants</h2>
-                  <button className="text-sm text-[hsl(var(--color-primary))] hover:underline">View All</button>
+                  <Link to="/company/applicants" className="text-sm text-[hsl(var(--color-primary))] hover:underline">View All</Link>
                 </div>
               </div>
 
@@ -199,11 +221,20 @@ const CompanyDashboard = () => {
                   applicants.map((app) => {
                     const user = app.user || {};
                     const job = app.job || {};
+                    const initials = user.name ? user.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'NA';
                     return (
                       <div key={app.id} className="p-6 hover:bg-[hsl(var(--color-accent))] transition-colors">
                         <div className="flex items-start gap-4">
-                          <div className="h-12 w-12 rounded-full bg-[hsl(var(--color-secondary))] flex items-center justify-center shrink-0">
-                            <FiUsers className="h-6 w-6 text-[hsl(var(--color-primary))]" />
+                          <div className="h-12 w-12 rounded-full  flex items-center justify-center shrink-0 overflow-hidden">
+                            {user.profilePictureUrl ? (
+                              <img 
+                                src={getFileUrl(user.profilePictureUrl)} 
+                                alt={user.name || 'Applicant'} 
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              <div className="text-sm font-semibold text-[hsl(var(--color-primary))]">{initials}</div>
+                            )}
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="flex items-start justify-between mb-2">
@@ -215,9 +246,22 @@ const CompanyDashboard = () => {
                             </div>
 
                             <div className="flex items-center gap-2">
-                              <button className="btn btn-primary text-xs h-8"><FiCheck className="h-3 w-3 mr-1" />Shortlist</button>
-                              <Link to={`/company/applicants/${app.id}`} className="btn btn-outline text-xs h-8"><FiEye className="h-3 w-3 mr-1" />View Profile</Link>
-                              <button className="btn btn-outline text-xs h-8"><FiDownload className="h-3 w-3 mr-1" />Resume</button>
+                              <Link to={`/company/applicant/${app.id}`} className="btn btn-outline text-xs h-8"><FiEye className="h-3 w-3 mr-1" />View</Link>
+                              <button 
+                                onClick={() => handleStatusChange(app.id, 'Shortlisted')} 
+                                className="btn btn-primary text-xs h-8"
+                                disabled={app.status === 'Shortlisted'}
+                              >
+                                <FiCheck className="h-3 w-3 mr-1" />Shortlist
+                              </button>
+                              <button 
+                                onClick={() => handleStatusChange(app.id, 'Rejected')} 
+                                className="btn btn-outline text-xs h-8"
+                                style={{ borderColor: '#ef4444', color: '#ef4444' }}
+                                disabled={app.status === 'Rejected'}
+                              >
+                                <FiX className="h-3 w-3 mr-1" />Reject
+                              </button>
                             </div>
                           </div>
                         </div>

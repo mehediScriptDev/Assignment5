@@ -4,6 +4,14 @@ import { Link } from 'react-router';
 import { FiBriefcase, FiUsers } from 'react-icons/fi';
 import { useToast } from '../../../context/ToastContext';
 
+// Helper to convert relative file paths to full URLs
+const getFileUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith('http')) return path;
+  const baseUrl = import.meta.env.VITE_API_BASE?.replace('/api', '') || 'http://localhost:5000';
+  return `${baseUrl}${path}`;
+};
+
 // Helper to map salary range labels to numeric bounds
 const salaryRangeToBounds = (rangeLabel) => {
   if (!rangeLabel) return [null, null];
@@ -221,8 +229,16 @@ const JobsList = ({ filters = {}, search = '', pageSize = 10 }) => {
             <article key={job.id} className="card p-6 rounded-lg">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-start gap-4">
-                    <div className="h-12 w-12 rounded-md bg-secondary flex items-center justify-center">
-                      <FiBriefcase className="h-6 w-6 text-primary" />
+                    <div className="h-12 w-12 rounded-md bg-secondary flex items-center justify-center overflow-hidden">
+                      {job.company?.logoUrl ? (
+                        <img 
+                          src={getFileUrl(job.company.logoUrl)} 
+                          alt={job.company.name} 
+                          className="h-full w-full object-cover"
+                        />
+                      ) : (
+                        <FiBriefcase className="h-6 w-6 text-primary" />
+                      )}
                     </div>
                   <div>
                     <h3 className="font-semibold text-lg">{job.title}</h3>

@@ -5,6 +5,13 @@ import { BiBuilding } from 'react-icons/bi';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../../context/AuthContext';
 
+const getFileUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith('http')) return path;
+  const baseUrl = import.meta.env.VITE_API_BASE?.replace('/api', '') || 'http://localhost:5000';
+  return `${baseUrl}${path}`;
+};
+
 const Header = () => {
   return (
     <div>
@@ -41,12 +48,16 @@ const Header = () => {
                                     <button onClick={() => { auth.logout(); navigate('/'); }} className="btn btn-primary text-sm cursor-pointer" style={{ background: '#fff8e1', borderColor: '#fff8e1', color: '#111827' }}>Sign Out</button>
 
                                     <div className="flex items-center gap-3 ml-2">
-                                        <div className="h-9 w-9 rounded-full bg-white flex items-center justify-center border border-[hsl(var(--color-border))]">
-                                          {role === 'COMPANY' ? (
-                                            <BiBuilding className="h-5 w-5 text-black" />
-                                          ) : (
-                                            <FaUser className="h-5 w-5 text-black" />
-                                          )}
+                                        <div className="h-9 w-9 rounded-full bg-white flex items-center justify-center border border-[hsl(var(--color-border))] overflow-hidden">
+                                          {(() => {
+                                            console.log('Company logoUrl:', auth.user.company?.logoUrl);
+                                            console.log('Full company data:', auth.user.company);
+                                            return auth.user.company?.logoUrl ? (
+                                              <img src={getFileUrl(auth.user.company.logoUrl)} alt={auth.user.company?.name || 'Company'} className="h-full w-full object-cover" />
+                                            ) : (
+                                              <BiBuilding className="h-5 w-5 text-black" />
+                                            );
+                                          })()}
                                         </div>
                                         <span className="text-sm font-medium hidden md:inline text-black">{auth.user.company?.name || auth.user.name || 'Company'}</span>
                                     </div>
@@ -59,8 +70,15 @@ const Header = () => {
                                     <button onClick={() => { auth.logout(); navigate('/'); }} className="btn btn-primary text-sm cursor-pointer" style={{ background: '#fff8e1', borderColor: '#fff8e1', color: '#111827' }}>Sign Out</button>
 
                                     <div className="flex items-center gap-3 ml-2">
-                                      <div className="h-9 w-9 rounded-full bg-white flex items-center justify-center border border-[hsl(var(--color-border))]">
-                                        <FaUser className="h-5 w-5 text-black" />
+                                      <div className="h-9 w-9 rounded-full bg-secondary flex items-center justify-center border border-[hsl(var(--color-border))] overflow-hidden">
+                                        {(() => {
+                                          console.log('User profilePictureUrl:', auth.user.profilePictureUrl);
+                                          return auth.user.profilePictureUrl ? (
+                                            <img src={getFileUrl(auth.user.profilePictureUrl)} alt={auth.user.name || 'User'} className="h-full w-full object-cover" />
+                                          ) : (
+                                            <FaUser className="h-5 w-5 text-black" />
+                                          );
+                                        })()}
                                       </div>
                                       <span className="text-sm font-medium hidden md:inline text-black">{auth.user.name || 'User'}</span>
                                     </div>

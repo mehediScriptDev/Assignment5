@@ -20,6 +20,13 @@ import { useToast } from '../../context/ToastContext';
 
 const PAGE_SIZE = 8;
 
+const getFileUrl = (path) => {
+  if (!path) return null;
+  if (path.startsWith('http')) return path;
+  const baseUrl = import.meta.env.VITE_API_BASE?.replace('/api', '') || 'http://localhost:5000';
+  return `${baseUrl}${path}`;
+};
+
 const Applicants = () => {
   const [applicants, setApplicants] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -74,15 +81,19 @@ const Applicants = () => {
   };
 
   const openResume = (app) => {
-    const resume = app.resumeUrl || app.resume || app.resumeUrl;
+    const user = app.user || {};
+    const resume = user.resumeUrl || app.resumeUrl;
     if (!resume) {
       showToast && showToast('No resume available for this applicant', { type: 'error' });
       return;
     }
     try {
-      const base = client.defaults?.baseURL || '';
-      const href = resume.startsWith('http') ? resume : `${base}${resume}`;
-      window.open(href, '_blank');
+      const url = getFileUrl(resume);
+      if (url) {
+        window.open(url, '_blank');
+      } else {
+        showToast && showToast('Invalid resume URL', { type: 'error' });
+      }
     } catch (e) {
       console.error('Open resume failed', e);
       showToast && showToast('Could not open resume', { type: 'error' });
@@ -229,7 +240,15 @@ const Applicants = () => {
                   <div key={app.id} className="card p-6 hover:shadow-md transition-shadow">
                     <div className="flex flex-col md:flex-row gap-6">
                       <div className="shrink-0">
-                        <div className="h-16 w-16 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white text-xl font-bold">{(user.name || user.email || 'A').slice(0,2).toUpperCase()}</div>
+                        <div className="h-16 w-16 rounded-full bg-secondary flex items-center justify-center overflow-hidden border-2 border-border">
+                          {user.profilePictureUrl ? (
+                            <img src={getFileUrl(user.profilePictureUrl)} alt={user.name || 'Applicant'} className="h-full w-full object-cover" />
+                          ) : (
+                            <div className="text-xl font-bold text-primary">
+                              {(user.name || user.email || 'A').slice(0,2).toUpperCase()}
+                            </div>
+                          )}
+                        </div>
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-2 mb-3">
@@ -251,7 +270,7 @@ const Applicants = () => {
                         </div>
 
                         <div className="flex flex-wrap gap-2">
-                          <Link to={`/company/applicants/${app.id}`} className="btn btn-outline inline-flex items-center"><FiEye className="h-4 w-4 mr-2" /> View Profile</Link>
+                          <Link to={`/company/applicant/${app.id}`} className="btn btn-outline inline-flex items-center"><FiEye className="h-4 w-4 mr-2" /> View Details</Link>
                           <button onClick={() => openResume(app)} className="btn btn-outline inline-flex items-center"><FiDownload className="h-4 w-4 mr-2" /> Resume</button>
                           {app.status !== 'Shortlisted' && <button onClick={() => updateStatus(app.id, 'Shortlisted')} className="btn btn-primary inline-flex items-center"><FiCheck className="h-4 w-4 mr-2" /> Shortlist</button>}
                           {app.status !== 'Rejected' && <button onClick={() => updateStatus(app.id, 'Rejected')} className="btn btn-ghost inline-flex items-center text-red-600"><FiX className="h-4 w-4 mr-2" /> Reject</button>}
