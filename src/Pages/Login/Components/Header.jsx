@@ -42,11 +42,11 @@ const Header = () => {
         <div className="flex items-center justify-end gap-4">
           {user ? (
             <div className="flex items-center gap-3">
+              <button onClick={handleLogout} className="text-sm text-muted-foreground hover:text-primary" aria-label="Sign out">Sign Out</button>
               <div className="w-9 h-9 rounded-full bg-white border border-border flex items-center justify-center text-sm text-muted-foreground">
                 <FaUser className="h-5 w-5 text-muted-foreground" />
               </div>
               <span className="text-sm hidden sm:inline text-muted-foreground">{name}</span>
-              <button onClick={handleLogout} className="text-sm text-muted-foreground hover:text-primary">Sign Out</button>
             </div>
           ) : (
             <div className="flex items-center gap-3">

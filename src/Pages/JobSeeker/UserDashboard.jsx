@@ -71,76 +71,7 @@ const UserDashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <div className="card p-6 mb-6">
-            <div className="flex items-start justify-between">
-              <h3 className="font-semibold mb-0">Recent Applications</h3>
-              <Link to="/applied-jobs" className="text-sm text-muted-foreground hover:underline">View All</Link>
-            </div>
-            {loadingApps ? (
-              <p className="text-sm text-muted-foreground">Loading...</p>
-            ) : applications.length === 0 ? (
-              <p className="text-sm text-muted-foreground">You have no recent applications.</p>
-            ) : (
-              <div className="space-y-4">
-                {applications.slice(0,5).map(app => {
-                  const job = app.job || {};
-                  const appliedDate = app.createdAt ? new Date(app.createdAt).toLocaleDateString() : '';
-                  const salary = job.salaryMin || job.salaryMax ? `${job.salaryMin ? `$${job.salaryMin}` : ''}${job.salaryMin && job.salaryMax ? ' - ' : ''}${job.salaryMax ? `$${job.salaryMax}` : ''}` : '';
-                  const statusClass = (() => {
-                    switch ((app.status || '').toLowerCase()) {
-                      case 'under review':
-                      case 'new':
-                        return 'badge badge-default';
-                      case 'interview scheduled':
-                      case 'interviewed':
-                        return 'badge badge-info';
-                      case 'pending':
-                        return 'badge badge-secondary';
-                      case 'shortlisted':
-                        return 'badge badge-success';
-                      case 'rejected':
-                        return 'badge badge-danger';
-                      default:
-                        return 'badge badge-outline';
-                    }
-                  })();
-
-                  return (
-                    <article key={app.id} className="card p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-start gap-4">
-                          <div className="h-10 w-10 rounded-md bg-secondary flex items-center justify-center">
-                            <FiBriefcase className="h-5 w-5 text-primary" />
-                          </div>
-                          <div>
-                            <h4 className="font-semibold text-lg">{job.title || 'Job Title'}</h4>
-                            <div className="text-sm text-muted-foreground">{job.company?.name || ''}</div>
-                            <div className="text-sm text-muted-foreground mt-2 flex items-center gap-3">
-                              <span className="flex items-center gap-2"><FiMapPin className="h-4 w-4" />{job.location || ''}</span>
-                              <span className="flex items-center gap-2">• Applied on {appliedDate}</span>
-                              {salary && <span className="flex items-center gap-2">• {salary}</span>}
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="flex flex-col items-end gap-3">
-                          <span className={statusClass}>{app.status || 'Status'}</span>
-                          <div className="flex items-center gap-2">
-                            <Link to={`/jobs/${job.slug}`} className="btn btn-outline text-sm">View Job</Link>
-                            {app.status && ['new', 'under review', 'pending'].includes((app.status || '').toLowerCase()) ? (
-                              <button onClick={() => withdraw(app.id)} className="btn btn-ghost text-sm">Withdraw Application</button>
-                            ) : (
-                              <button className="btn btn-ghost text-sm">Reschedule</button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+          {/* Recent Applications section removed per request */}
 
           <div className="card p-6 mt-6">
             <div className="flex items-start justify-between">
