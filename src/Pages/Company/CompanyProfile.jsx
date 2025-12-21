@@ -100,7 +100,7 @@ const CompanyProfile = () => {
   const handleApplySubmit = async () => {
     if (!selectedJob) return;
     if (!coverLetter || coverLetter.trim().length === 0) {
-      alert('Please enter a cover letter.');
+      showToast && showToast('Please enter a cover letter.', { type: 'error' });
       return;
     }
 
@@ -113,11 +113,11 @@ const CompanyProfile = () => {
         showToast('Application submitted successfully.', { type: 'success' });
         closeApplyModal();
       } else {
-        alert(res.data?.message || 'Application failed');
+        showToast && showToast(res.data?.message || 'Application failed', { type: 'error' });
       }
     } catch (err) {
       console.error('Apply error', err);
-      alert(err?.response?.data?.message || err.message || 'Application failed');
+      showToast && showToast(err?.response?.data?.message || err.message || 'Application failed', { type: 'error' });
     } finally {
       setApplying(false);
     }
@@ -254,8 +254,17 @@ const CompanyProfile = () => {
                           className="btn btn-primary text-sm"
                           style={{ background: '#fff8e1', borderColor: '#fff8e1', color: '#111827' }}
                           onClick={async () => {
-                          if (!confirm('Are you sure you want to withdraw this application?')) return;
                           try {
+                            let confirmed = false;
+                            try {
+                              const Swal = (await import('sweetalert2')).default;
+                              const result = await Swal.fire({ title: 'Withdraw application?', text: 'Are you sure you want to withdraw this application?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Withdraw' });
+                              confirmed = !!result.isConfirmed;
+                            } catch (e) {
+                              confirmed = confirm('Are you sure you want to withdraw this application?');
+                            }
+                            if (!confirmed) return;
+
                             const appId = appliedMap[job.id];
                             if (!appId) throw new Error('Application id not found');
                             await client.delete(`/applications/${appId}`);
@@ -270,7 +279,7 @@ const CompanyProfile = () => {
                             showToast('Application withdrawn', { type: 'success' });
                           } catch (e) {
                             console.error('Withdraw failed', e);
-                            alert(e?.response?.data?.message || e.message || 'Failed to withdraw application');
+                            showToast && showToast(e?.response?.data?.message || e.message || 'Failed to withdraw application', { type: 'error' });
                           }
                         }}>Withdraw</button>
                       ) : (

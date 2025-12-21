@@ -71,9 +71,9 @@ const JobDetails = () => {
 
   const submitApplication = async () => {
     if (!job) return;
-    if (!coverLetter || coverLetter.trim().length < 20) return alert('Please add a cover letter (min 20 chars)');
-    if (uploadedFile && uploadedFile.type !== 'application/pdf') return alert('Please upload a PDF file only');
-    if (uploadedFile && uploadedFile.size > 5 * 1024 * 1024) return alert('File size must be less than 5MB');
+    if (!coverLetter || coverLetter.trim().length < 20) return showToast && showToast('Please add a cover letter (min 20 chars)', { type: 'error' });
+    if (uploadedFile && uploadedFile.type !== 'application/pdf') return showToast && showToast('Please upload a PDF file only', { type: 'error' });
+    if (uploadedFile && uploadedFile.size > 5 * 1024 * 1024) return showToast && showToast('File size must be less than 5MB', { type: 'error' });
 
     setSubmitting(true);
     try {
@@ -87,9 +87,9 @@ const JobDetails = () => {
             throw new Error(up.data?.message || 'Resume upload failed');
           }
           // resume upload succeeded; server should have updated user's resumeUrl
-        } catch (uerr) {
+          } catch (uerr) {
           console.error('Resume upload failed', uerr?.response?.data || uerr);
-          alert(uerr?.response?.data?.message || uerr.message || 'Failed to upload resume');
+          showToast && showToast(uerr?.response?.data?.message || uerr.message || 'Failed to upload resume', { type: 'error' });
           setSubmitting(false);
           return;
         }
@@ -99,7 +99,7 @@ const JobDetails = () => {
       const me = await client.get('/auth/me');
       const resumeUrl = me?.data?.data?.resumeUrl;
       if (!resumeUrl) {
-        alert('Please upload your resume from your profile page before applying. The apply endpoint uses your saved profile resume.');
+        showToast && showToast('Please upload your resume from your profile page before applying. The apply endpoint uses your saved profile resume.', { type: 'error' });
         setSubmitting(false);
         return;
       }
@@ -117,7 +117,7 @@ const JobDetails = () => {
     } catch (err) {
       console.error('Apply failed', err?.response?.data || err);
       const msg = err?.response?.data?.message || 'Failed to apply';
-      alert(msg);
+      showToast && showToast(msg, { type: 'error' });
     } finally {
       setSubmitting(false);
     }
@@ -136,11 +136,11 @@ const JobDetails = () => {
     const file = e.target.files && e.target.files[0];
     if (!file) return;
     if (file.type !== 'application/pdf') {
-      alert('Please upload a PDF file only');
+      showToast && showToast('Please upload a PDF file only', { type: 'error' });
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      alert('File size must be less than 5MB');
+      showToast && showToast('File size must be less than 5MB', { type: 'error' });
       return;
     }
     setUploadedFile(file);
@@ -313,15 +313,23 @@ const JobDetails = () => {
                 {appliedAppId ? (
                   <button
                     onClick={async () => {
-                      if (!confirm('Are you sure you want to withdraw your application?')) return;
                       try {
+                        let confirmed = false;
+                        try {
+                          const Swal = (await import('sweetalert2')).default;
+                          const result = await Swal.fire({ title: 'Withdraw application?', text: 'Are you sure you want to withdraw your application?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Withdraw' });
+                          confirmed = !!result.isConfirmed;
+                        } catch (e) {
+                          confirmed = confirm('Are you sure you want to withdraw your application?');
+                        }
+                        if (!confirmed) return;
                         await client.delete(`/applications/${appliedAppId}`);
                         setAppliedAppId(null);
                         setJob(prev => prev ? ({ ...prev, applicants: Math.max(0, (prev.applicants || 1) - 1) }) : prev);
                         showToast('Application withdrawn', { type: 'success' });
                       } catch (e) {
                         console.error('Withdraw failed', e);
-                        alert(e?.response?.data?.message || 'Failed to withdraw application');
+                        showToast && showToast(e?.response?.data?.message || 'Failed to withdraw application', { type: 'error' });
                       }
                     }}
                     className="btn btn-primary w-full"

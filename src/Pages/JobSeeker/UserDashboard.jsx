@@ -3,8 +3,10 @@ import { Link } from 'react-router';
 import client from '../../api/client';
 import { AuthContext } from '../../context/AuthContext';
 import { FiBriefcase, FiMapPin, FiUsers, FiUser, FiEdit2, FiFileText } from 'react-icons/fi';
+import { useToast } from '../../context/ToastContext';
 
 const UserDashboard = () => {
+  const { showToast } = useToast();
   const [applications, setApplications] = useState([]);
   const [recommendations, setRecommendations] = useState([]);
   const [loadingApps, setLoadingApps] = useState(true);
@@ -48,14 +50,23 @@ const UserDashboard = () => {
   }, []);
 
   const withdraw = async (applicationId) => {
-    if (!confirm('Are you sure you want to withdraw this application?')) return;
+    // Use SweetAlert2 if available for confirm, otherwise fallback to window.confirm
     try {
+      let confirmed = false;
+      try {
+        const Swal = (await import('sweetalert2')).default;
+        const result = await Swal.fire({ title: 'Withdraw application?', text: 'Are you sure you want to withdraw this application?', icon: 'warning', showCancelButton: true, confirmButtonText: 'Withdraw' });
+        confirmed = !!result.isConfirmed;
+      } catch (e) {
+        confirmed = confirm('Are you sure you want to withdraw this application?');
+      }
+      if (!confirmed) return;
       await client.delete(`/applications/${applicationId}`);
       setApplications(prev => prev.filter(a => a.id !== applicationId));
-      alert('Application withdrawn');
+      showToast && showToast('Application withdrawn', { type: 'success' });
     } catch (err) {
       console.error('Withdraw failed', err);
-      alert(err?.response?.data?.message || 'Failed to withdraw application');
+      showToast && showToast(err?.response?.data?.message || 'Failed to withdraw application', { type: 'error' });
     }
   };
 

@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
 import client from '../../../api/client';
 import { AuthContext } from '../../../context/AuthContext';
+import { useToast } from '../../../context/ToastContext';
 import { useNavigate } from 'react-router';
 
 const CompanyForm = () => {
@@ -17,10 +18,11 @@ const CompanyForm = () => {
     const [loading, setLoading] = useState(false);
     const auth = useContext(AuthContext);
     const navigate = useNavigate();
+    const { showToast } = useToast();
 
     const onSubmit = async (e) => {
         e.preventDefault();
-        if (password !== confirmPassword) return alert('Passwords do not match');
+        if (password !== confirmPassword) return showToast && showToast('Passwords do not match', { type: 'error' });
         setLoading(true);
         try {
             const payload = {
@@ -44,9 +46,9 @@ const CompanyForm = () => {
             } else {
                 const msg = res.data?.message || 'Registration failed';
                 if (msg.toLowerCase().includes('user already exists')) {
-                    alert(`${msg}. If you already have an account try signing in instead (choose Employer).`);
+                    showToast && showToast(`${msg}. If you already have an account try signing in instead (choose Employer).`, { type: 'error' });
                 } else {
-                    alert(msg);
+                    showToast && showToast(msg, { type: 'error' });
                 }
             }
         } catch (err) {
@@ -55,11 +57,11 @@ const CompanyForm = () => {
             const serverMessage = err?.response?.data?.message;
             const serverBody = err?.response?.data;
             if (serverMessage) {
-                alert(`Registration failed: ${serverMessage}`);
+                showToast && showToast(`Registration failed: ${serverMessage}`, { type: 'error' });
             } else if (err.message) {
-                alert(`Registration error: ${err.message}`);
+                showToast && showToast(`Registration error: ${err.message}`, { type: 'error' });
             } else {
-                alert(`Registration error: ${JSON.stringify(serverBody) || 'unknown'}`);
+                showToast && showToast(`Registration error: ${JSON.stringify(serverBody) || 'unknown'}`, { type: 'error' });
             }
         } finally {
             setLoading(false);

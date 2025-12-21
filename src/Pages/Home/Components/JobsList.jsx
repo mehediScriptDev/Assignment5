@@ -2,6 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import client from '../../../api/client';
 import { Link } from 'react-router';
 import { FiBriefcase, FiUsers } from 'react-icons/fi';
+import { useToast } from '../../../context/ToastContext';
 
 // Helper to map salary range labels to numeric bounds
 const salaryRangeToBounds = (rangeLabel) => {
@@ -29,6 +30,7 @@ const JobsList = ({ filters = {}, search = '', pageSize = 10 }) => {
   const [sort, setSort] = useState('relevance');
   const [appliedMap, setAppliedMap] = useState({}); // jobId -> applicationId
   const cancelRef = useRef(null);
+  const { showToast } = useToast();
 
   // Build query params from filters and search
   const buildParams = (p = page) => {
@@ -164,7 +166,7 @@ const JobsList = ({ filters = {}, search = '', pageSize = 10 }) => {
     try {
       const appId = appliedMap[job.id];
       if (!appId) {
-        alert('No application found to withdraw');
+        showToast && showToast('No application found to withdraw', { type: 'error' });
         return;
       }
       await client.delete(`/applications/${appId}`);
@@ -178,10 +180,10 @@ const JobsList = ({ filters = {}, search = '', pageSize = 10 }) => {
       // refresh rawJobs too
       setRawJobs(prev => prev.map(j => j.id === job.id ? ({ ...j, applicants: Math.max(0, (j.applicants || 1) - 1) }) : j));
       // show success
-      try { window.showToast && window.showToast('Application withdrawn', { type: 'success' }); } catch(e) {}
+      showToast && showToast('Application withdrawn', { type: 'success' });
     } catch (e) {
       console.error('Failed to withdraw application', e);
-      alert(e?.response?.data?.message || 'Failed to withdraw application');
+      showToast && showToast(e?.response?.data?.message || 'Failed to withdraw application', { type: 'error' });
     }
   };
 

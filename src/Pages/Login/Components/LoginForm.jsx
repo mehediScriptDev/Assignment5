@@ -3,6 +3,7 @@ import Email from "./Email";
 import Password from "./Password";
 import client from '../../../api/client';
 import { AuthContext } from '../../../context/AuthContext';
+import { useToast } from '../../../context/ToastContext';
 import { useNavigate } from 'react-router';
 
 const LoginForm = () => {
@@ -12,6 +13,7 @@ const LoginForm = () => {
   const [loading, setLoading] = useState(false);
   const auth = useContext(AuthContext);
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const onSubmit = async (e) => {
     e.preventDefault();
@@ -29,12 +31,12 @@ const LoginForm = () => {
           navigate('/user-dashboard');
         }
       } else {
-        alert(res.data?.message || 'Login failed');
+        showToast && showToast(res.data?.message || 'Login failed', { type: 'error' });
       }
     } catch (err) {
       console.error('Login error:', err);
       console.error('Login response:', err?.response?.data);
-      alert(err?.response?.data?.message || 'Login error');
+      showToast && showToast(err?.response?.data?.message || 'Login error', { type: 'error' });
     } finally {
       setLoading(false);
     }

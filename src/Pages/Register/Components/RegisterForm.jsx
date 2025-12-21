@@ -1,6 +1,7 @@
 import React, { useState, useContext } from 'react';
 import client from '../../../api/client';
 import { AuthContext } from '../../../context/AuthContext';
+import { useToast } from '../../../context/ToastContext';
 import { useNavigate } from 'react-router';
 
 const RegisterForm = () => {
@@ -13,10 +14,11 @@ const RegisterForm = () => {
     const [loading, setLoading] = useState(false);
     const auth = useContext(AuthContext);
     const navigate = useNavigate();
+    const { showToast } = useToast();
 
     const onSubmit = async (e) => {
         e.preventDefault();
-        if (password !== confirmPassword) return alert('Passwords do not match');
+        if (password !== confirmPassword) return showToast && showToast('Passwords do not match', { type: 'error' });
         setLoading(true);
         try {
             const payload = { name, email, password, role: 'USER', phone, experience };
@@ -28,18 +30,18 @@ const RegisterForm = () => {
                 if (userRole === 'COMPANY') navigate('/company/dashboard');
                 else navigate('/user-dashboard');
             } else {
-                alert(res.data?.message || 'Registration failed');
+                showToast && showToast(res.data?.message || 'Registration failed', { type: 'error' });
             }
         } catch (err) {
             console.error('Register error:', err);
             const serverMessage = err?.response?.data?.message;
             const serverBody = err?.response?.data;
             if (serverMessage) {
-                alert(`Registration failed: ${serverMessage}`);
+                showToast && showToast(`Registration failed: ${serverMessage}`, { type: 'error' });
             } else if (err.message) {
-                alert(`Registration error: ${err.message}`);
+                showToast && showToast(`Registration error: ${err.message}`, { type: 'error' });
             } else {
-                alert(`Registration error: ${JSON.stringify(serverBody) || 'unknown'}`);
+                showToast && showToast(`Registration error: ${JSON.stringify(serverBody) || 'unknown'}`, { type: 'error' });
             }
         } finally {
             setLoading(false);

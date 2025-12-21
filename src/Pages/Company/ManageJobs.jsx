@@ -53,8 +53,28 @@ const ManageJobs = () => {
   useEffect(() => { fetchJobs(); }, []);
 
   const handleDelete = async (id) => {
-    if (!confirm('Delete this job? This action cannot be undone.')) return;
+    // Prefer SweetAlert2 (if installed) for nicer confirmation, fallback to window.confirm
     try {
+      let confirmed = false;
+      try {
+        const Swal = (await import('sweetalert2')).default;
+        const result = await Swal.fire({
+          title: 'Delete this job?',
+          text: 'This action cannot be undone.',
+          icon: 'warning',
+          showCancelButton: true,
+          confirmButtonColor: '#d33',
+          confirmButtonText: 'Delete',
+          cancelButtonText: 'Cancel'
+        });
+        confirmed = !!result.isConfirmed;
+      } catch (e) {
+        // sweetalert2 not available, fallback
+        confirmed = confirm('Delete this job? This action cannot be undone.');
+      }
+
+      if (!confirmed) return;
+
       const res = await client.delete(`/jobs/${id}`);
       if (res.data && res.data.success) {
         showToast && showToast('Job deleted', { type: 'success' });
