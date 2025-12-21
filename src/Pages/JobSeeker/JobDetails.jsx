@@ -4,6 +4,7 @@ import client from '../../api/client';
 import { FiChevronRight, FiMapPin, FiClock, FiBriefcase, FiDollarSign, FiUsers, FiSend, FiX, FiFlag, FiEye } from 'react-icons/fi';
 import { BiBuilding } from 'react-icons/bi';
 import { FaLinkedin, FaTwitter, FaFacebook } from 'react-icons/fa';
+import { useToast } from '../../context/ToastContext';
 
 const JobDetails = () => {
   const { slug } = useParams();
@@ -18,6 +19,7 @@ const JobDetails = () => {
   const [fileName, setFileName] = useState('');
   const [fileSize, setFileSize] = useState('');
   const modalRef = useRef(null);
+  const { showToast } = useToast();
 
   useEffect(() => {
     const load = async () => {
@@ -61,16 +63,37 @@ const JobDetails = () => {
 
     setSubmitting(true);
     try {
-      const form = new FormData();
-      form.append('coverLetter', coverLetter);
-      if (uploadedFile) form.append('resume', uploadedFile);
+      // If a resume file is selected in the modal, upload it first to the profile endpoint.
+      if (uploadedFile) {
+        const fd = new FormData();
+        fd.append('resume', uploadedFile);
+        try {
+          const up = await client.post('/users/resume', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+          if (!(up.data && up.data.success)) {
+            throw new Error(up.data?.message || 'Resume upload failed');
+          }
+          // resume upload succeeded; server should have updated user's resumeUrl
+        } catch (uerr) {
+          console.error('Resume upload failed', uerr?.response?.data || uerr);
+          alert(uerr?.response?.data?.message || uerr.message || 'Failed to upload resume');
+          setSubmitting(false);
+          return;
+        }
+      }
 
-      const res = await client.post(`/applications/jobs/${job.id}/apply`, form, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      // Ensure profile has resumeUrl (either from prior upload or existing profile)
+      const me = await client.get('/auth/me');
+      const resumeUrl = me?.data?.data?.resumeUrl;
+      if (!resumeUrl) {
+        alert('Please upload your resume from your profile page before applying. The apply endpoint uses your saved profile resume.');
+        setSubmitting(false);
+        return;
+      }
 
+      // Now submit the application as JSON containing only the coverLetter
+      const res = await client.post(`/applications/jobs/${job.id}/apply`, { coverLetter });
       if (res.data && res.data.success) {
-        alert('Application submitted');
+        showToast('Application submitted', { type: 'success' });
         closeApply();
       }
     } catch (err) {

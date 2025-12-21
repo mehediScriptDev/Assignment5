@@ -2,7 +2,7 @@ import React, { useEffect, useState, useContext } from 'react';
 import { Link } from 'react-router';
 import client from '../../api/client';
 import { AuthContext } from '../../context/AuthContext';
-import { FiBriefcase, FiMapPin, FiUsers, FiUser, FiEdit2, FiFileText, FiBookmark, FiSettings } from 'react-icons/fi';
+import { FiBriefcase, FiMapPin, FiUsers, FiUser, FiEdit2, FiFileText } from 'react-icons/fi';
 
 const UserDashboard = () => {
   const [applications, setApplications] = useState([]);
@@ -145,18 +145,7 @@ const UserDashboard = () => {
                   <span>My Applications</span>
                 </Link>
               </li>
-              <li>
-                <Link to="#" className="flex items-center gap-3 text-sm hover:text-primary">
-                  <FiBookmark className="text-primary" size={18} />
-                  <span>Saved Jobs</span>
-                </Link>
-              </li>
-              <li>
-                <Link to="#" className="flex items-center gap-3 text-sm hover:text-primary">
-                  <FiSettings className="text-primary" size={18} />
-                  <span>Settings</span>
-                </Link>
-              </li>
+              
             </ul>
           </div>
 

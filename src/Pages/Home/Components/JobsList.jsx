@@ -112,7 +112,10 @@ const JobsList = ({ filters = {}, search = '', pageSize = 10 }) => {
   if (error && jobs.length === 0) return <div className="py-6 text-center text-sm text-destructive">{error}</div>;
 
   const onLoadMore = () => {
-    if (page < totalPages) setPage(prev => prev + 1);
+    if (page < totalPages && !loading) {
+      console.debug('JobsList: load more, current page', page);
+      setPage(prev => prev + 1);
+    }
   };
 
   return (
@@ -162,7 +165,10 @@ const JobsList = ({ filters = {}, search = '', pageSize = 10 }) => {
           ))}
 
           <div className="text-center mt-6">
-            <button className="btn btn-outline" onClick={onLoadMore} disabled={page >= totalPages}>{page < totalPages ? 'Load More Jobs' : 'No More Jobs'}</button>
+            <div className="mb-2 text-sm text-muted-foreground">Page {page} of {totalPages}</div>
+            <button className="btn btn-outline" onClick={onLoadMore} disabled={loading || page >= totalPages}>
+              {loading ? (page === 1 ? 'Loading...' : 'Loading more…') : (page < totalPages ? 'Load More Jobs' : 'No More Jobs')}
+            </button>
             <div className="text-sm text-muted-foreground mt-2">Showing {jobs.length} jobs</div>
           </div>
         </div>

@@ -2,6 +2,8 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Link } from 'react-router';
 import { FiChevronRight, FiRotateCcw, FiChevronDown, FiMapPin, FiBriefcase, FiDollarSign, FiClock, FiEye, FiLoader } from 'react-icons/fi';
 import { BiBuilding } from 'react-icons/bi';
+import client from '../../api/client';
+import { useToast } from '../../context/ToastContext';
 
 const AppliedJobs = () => {
   const filtersFormRef = useRef(null);
@@ -15,6 +17,11 @@ const AppliedJobs = () => {
 
   const toggleSort = () => setSortOpen(s => !s);
   const selectSort = (value) => { setSort(value); setSortOpen(false); };
+
+  const [applications, setApplications] = useState([]);
+  const [loadingApps, setLoadingApps] = useState(true);
+  const [appsError, setAppsError] = useState(null);
+  const { showToast } = useToast();
 
   useEffect(() => {
     if (!sortOpen) return;
@@ -32,6 +39,58 @@ const AppliedJobs = () => {
       document.removeEventListener('keydown', onKey);
     };
   }, [sortOpen]);
+
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      try {
+        setLoadingApps(true);
+        const res = await client.get('/applications/my-applications');
+        if (!mounted) return;
+        if (res.data && res.data.success) setApplications(res.data.data || []);
+      } catch (e) {
+        console.error('Failed to load applied jobs', e);
+        if (mounted) setAppsError(e?.response?.data?.message || 'Failed to load applications');
+      } finally {
+        if (mounted) setLoadingApps(false);
+      }
+    };
+    load();
+    return () => { mounted = false; };
+  }, []);
+
+  // Client-side sorting of applications
+  useEffect(() => {
+    if (!applications || applications.length === 0) return;
+    const copy = [...applications];
+    const getTime = (item) => {
+      return new Date(item.createdAt || item.appliedAt || item.created_at || 0).getTime();
+    };
+
+    if (sort === 'newest') {
+      copy.sort((a, b) => getTime(b) - getTime(a));
+    } else if (sort === 'oldest') {
+      copy.sort((a, b) => getTime(a) - getTime(b));
+    } else if (sort === 'recently-updated') {
+      const getUpdated = (item) => new Date(item.updatedAt || item.updated_at || item.updatedAtAt || 0).getTime();
+      copy.sort((a, b) => getUpdated(b) - getUpdated(a));
+    }
+
+    // Apply sorted order to state
+    setApplications(copy);
+  }, [sort]);
+
+  const withdraw = async (applicationId) => {
+    if (!confirm('Are you sure you want to withdraw this application?')) return;
+    try {
+      await client.delete(`/applications/${applicationId}`);
+      setApplications(prev => prev.filter(a => a.id !== applicationId));
+      showToast('Application withdrawn', { type: 'success' });
+    } catch (err) {
+      console.error('Withdraw failed', err);
+      showToast(err?.response?.data?.message || 'Failed to withdraw application', { type: 'error' });
+    }
+  };
 
   return (
     <main className="container mx-auto px-4 py-6">
@@ -137,55 +196,74 @@ const AppliedJobs = () => {
           </div>
 
           {/* Example application cards - replicate the HTML structure */}
-          <div className="card p-6 hover:shadow-md transition-shadow">
-            <div className="flex flex-col md:flex-row gap-6">
-              <div className="shrink-0">
-                <div className="h-16 w-16 rounded-lg bg-secondary flex items-center justify-center">
-                    <BiBuilding className="h-8 w-8 text-primary" />
-                  </div>
-              </div>
+          {loadingApps ? (
+            <div className="card p-6">Loading your applications...</div>
+          ) : appsError ? (
+            <div className="card p-6 text-destructive">{appsError}</div>
+          ) : applications.length === 0 ? (
+            <div className="card p-6">You haven't applied to any jobs yet.</div>
+          ) : (
+            applications.map((app) => {
+              const job = app.job || app.Job || {};
+              const company = job.company || job.companyName || {};
+              const status = app.status || 'Applied';
+              const appliedAt = app.createdAt || app.appliedAt || app.created_at;
+              return (
+                <article key={app.id} className="card p-6 hover:shadow-md transition-shadow">
+                  <div className="flex flex-col md:flex-row gap-6">
+                    <div className="shrink-0">
+                      <div className="h-16 w-16 rounded-lg bg-secondary flex items-center justify-center">
+                        <BiBuilding className="h-8 w-8 text-primary" />
+                      </div>
+                    </div>
 
-              <div className="flex-1 min-w-0">
-                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold mb-1">
-                      <Link to="/job-details" className="hover:text-primary">Senior Full Stack Developer</Link>
-                    </h3>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      <Link to="/company-profile" className="hover:text-primary">TechCorp Solutions</Link>
-                    </p>
-                  </div>
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-yellow-50 text-yellow-800 border border-yellow-200"
-                    aria-label="Application status: Under Review"
-                    aria-pressed="true"
-                    disabled
-                  >
-                    <span className="whitespace-nowrap">Under Review</span>
-                  </button>
-                </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-3">
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold mb-1">
+                            <Link to={`/jobs/${job.slug || job.id}`} className="hover:text-primary">{job.title || 'Untitled Role'}</Link>
+                          </h3>
+                          <p className="text-sm text-muted-foreground mb-2">
+                            <Link to={`/companies/${company.id || ''}`} className="hover:text-primary">{company.name || job.companyName || 'Company'}</Link>
+                          </p>
+                        </div>
 
-                <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-4">
-                  <span className="flex items-center gap-1"><FiMapPin className="h-4 w-4" /> San Francisco, CA</span>
-                  <span className="flex items-center gap-1"><FiBriefcase className="h-4 w-4" /> Full-time</span>
-                  <span className="flex items-center gap-1"><FiDollarSign className="h-4 w-4" /> $120k - $160k</span>
-                </div>
+                        <div>
+                          <button
+                            type="button"
+                            className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-yellow-50 text-yellow-800 border border-yellow-200"
+                            aria-label={`Application status: ${status}`}
+                            disabled
+                          >
+                            <span className="whitespace-nowrap">{status}</span>
+                          </button>
+                        </div>
+                      </div>
 
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1"><FiClock className="h-3 w-3" /> Applied on Nov 25, 2025</span>
+                      <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-4">
+                        {job.location && <span className="flex items-center gap-1"><FiMapPin className="h-4 w-4" /> {job.location}</span>}
+                        {job.type && <span className="flex items-center gap-1"><FiBriefcase className="h-4 w-4" /> {job.type}</span>}
+                        {(job.salaryMin || job.salaryMax) && <span className="flex items-center gap-1"><FiDollarSign className="h-4 w-4" /> {job.salaryMin ? `$${job.salaryMin}` : ''}{job.salaryMin && job.salaryMax ? ' - ' : ''}{job.salaryMax ? `$${job.salaryMax}` : ''}</span>}
+                      </div>
+
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1"><FiClock className="h-3 w-3" /> {appliedAt ? new Date(appliedAt).toLocaleDateString() : ''}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Link to={`/jobs/${job.slug || job.id}`} className="btn btn-outline text-sm h-9">
+                            <FiEye className="h-4 w-4 mr-2" />
+                            View Job
+                          </Link>
+                          <button onClick={() => withdraw(app.id)} className="btn btn-ghost text-sm h-9">Withdraw</button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Link to="/job-details" className="btn btn-outline text-sm h-9">
-                      <FiEye className="h-4 w-4 mr-2" />
-                      View Job
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+                </article>
+              );
+            })
+          )}
 
           {/* Load More */}
           <div className="flex justify-center pt-6">
