@@ -7,22 +7,22 @@
 
 @layer base {
 	:root {
-		/* Modern Indigo + Teal theme */
-		--color-border: 210 16% 92%; /* light gray */
-		--color-input: 210 16% 96%;
-		--color-ring: 233 80% 60%; /* focus ring (indigo-ish) */
-		--color-background: 210 50% 98%; /* very light */
-		--color-foreground: 220 15% 12%; /* dark slate */
-		--color-primary: 233 66% 44%; /* indigo */
-		--color-primary-foreground: 0 0% 100%; /* white */
-		--color-secondary: 174 65% 36%; /* teal */
+		/* Modern Teal & Ocean Blue Theme */
+		--color-border: 210 20% 88%;
+		--color-input: 210 20% 92%;
+		--color-ring: 189 85% 45%;
+		--color-background: 210 25% 98%;
+		--color-foreground: 215 25% 15%;
+		--color-primary: 189 85% 45%; /* Bright teal/cyan */
+		--color-primary-foreground: 0 0% 100%;
+		--color-secondary: 220 70% 50%; /* Deep ocean blue */
 		--color-secondary-foreground: 0 0% 100%;
-		--color-muted: 210 20% 95%;
-		--color-muted-foreground: 220 10% 50%;
-		--color-accent: 45 100% 96%;
-		--color-accent-foreground: 220 15% 12%;
+		--color-muted: 210 20% 94%;
+		--color-muted-foreground: 215 15% 45%;
+		--color-accent: 189 70% 95%;
+		--color-accent-foreground: 189 85% 25%;
 		--color-card: 0 0% 100%;
-		--color-card-foreground: 220 15% 12%;
+		--color-card-foreground: 215 25% 15%;
 	}
 }
 
@@ -95,6 +95,13 @@
 		@apply flex min-h-[80px] w-full rounded-md border border-[hsl(var(--color-input))];
 		@apply bg-[hsl(var(--color-background))] px-3 py-2 text-sm;
 		@apply placeholder:text-[hsl(var(--color-muted-foreground))];
+		@apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--color-ring))];
+		@apply disabled:cursor-not-allowed disabled:opacity-50;
+	}
+
+	.select {
+		@apply flex h-10 w-full rounded-md border border-[hsl(var(--color-input))];
+		@apply bg-[hsl(var(--color-background))] px-3 py-2 text-sm;
 		@apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[hsl(var(--color-ring))];
 		@apply disabled:cursor-not-allowed disabled:opacity-50;
 	}
