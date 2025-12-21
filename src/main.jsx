@@ -33,6 +33,7 @@ const router = createBrowserRouter([
       { path: 'register-company', element: <RegisterCompany /> },
       // Job Seeker pages
       { path: 'jobs/:slug', element: <JobDetails /> },
+      { path: 'jobs', element: <Home /> },
       { path: 'applied-jobs', element: <RequireAuth role="USER"><AppliedJobs /></RequireAuth> },
       { path: 'user-dashboard', element: <RequireAuth role="USER"><UserDashboard /></RequireAuth> },
       { path: 'user-profile', element: <UserProfile /> },
@@ -43,6 +44,7 @@ const router = createBrowserRouter([
       { path: 'company/create-job', element: <RequireAuth role="COMPANY"><CreateJob /></RequireAuth> },
       { path: 'company/manage-jobs', element: <RequireAuth role="COMPANY"><ManageJobs /></RequireAuth> },
       { path: 'company/applicants/:jobId?', element: <RequireAuth role="COMPANY"><Applicants /></RequireAuth> },
+      { path: 'companies/:id', element: <CompanyProfile /> },
       { path: 'company/profile', element: <CompanyProfile /> },
       { path: 'company/settings', element: <RequireAuth role="COMPANY"><CompanySettings /></RequireAuth> },
     ],

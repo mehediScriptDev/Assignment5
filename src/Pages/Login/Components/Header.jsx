@@ -57,18 +57,24 @@ const Header = () => {
               Post Job
             </Link>
 
-            <button onClick={handleLogout} className="btn btn-ghost text-sm">Sign Out</button>
+            {user ? (
+              <button onClick={handleLogout} className="btn btn-ghost text-sm">Sign Out</button>
+            ) : (
+              <Link to="/login" className="btn btn-ghost text-sm">Sign In</Link>
+            )}
 
-            <div className="flex items-center gap-3 ml-2">
-              <div className="h-9 w-9 rounded-full bg-white flex items-center justify-center border border-[hsl(var(--color-border))]">
-                {user?.role === 'COMPANY' ? (
-                  <BiBuilding className="h-5 w-5 text-black" />
-                ) : (
-                  <FaUser className="h-5 w-5 text-black" />
-                )}
+            {user && (
+              <div className="flex items-center gap-3 ml-2">
+                <div className="h-9 w-9 rounded-full bg-white flex items-center justify-center border border-[hsl(var(--color-border))]">
+                  {user?.role === 'COMPANY' ? (
+                    <BiBuilding className="h-5 w-5 text-black" />
+                  ) : (
+                    <FaUser className="h-5 w-5 text-black" />
+                  )}
+                </div>
+                <span className="text-sm font-medium hidden sm:inline text-black">{name}</span>
               </div>
-              <span className="text-sm font-medium hidden sm:inline text-black">{name}</span>
-            </div>
+            )}
           </div>
         </div>
       </div>
