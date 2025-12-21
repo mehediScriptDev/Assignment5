@@ -53,7 +53,7 @@ const Header = () => {
         {/* Right: avatar / auth actions */}
         <div className="flex items-center justify-end gap-4">
             <div className="flex items-center gap-3">
-            {location.pathname !== '/user-dashboard' && (
+            {!(user && user.role === 'USER') && (
               <Link to="/company/create-job" className="btn btn-primary text-sm flex items-center gap-2">
                <FiFilePlus className="h-4 w-4" />
                 Post Job
