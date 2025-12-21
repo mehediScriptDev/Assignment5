@@ -10,9 +10,15 @@ const AppliedJobs = () => {
   const [sortOpen, setSortOpen] = useState(false);
   const sortRef = useRef(null);
   const [sort, setSort] = useState('newest');
+  const [rawApplications, setRawApplications] = useState([]);
+  // filter state
+  const [selectedStatuses, setSelectedStatuses] = useState(new Set()); // empty = all
+  const [dateRange, setDateRange] = useState('all'); // 'all'|'7'|'30'|'90'
 
   const resetFilters = () => {
     if (filtersFormRef.current) filtersFormRef.current.reset();
+    setSelectedStatuses(new Set());
+    setDateRange('all');
   };
 
   const toggleSort = () => setSortOpen(s => !s);
@@ -47,7 +53,10 @@ const AppliedJobs = () => {
         setLoadingApps(true);
         const res = await client.get('/applications/my-applications');
         if (!mounted) return;
-        if (res.data && res.data.success) setApplications(res.data.data || []);
+        if (res.data && res.data.success) {
+          setRawApplications(res.data.data || []);
+          setApplications(res.data.data || []);
+        }
       } catch (e) {
         console.error('Failed to load applied jobs', e);
         if (mounted) setAppsError(e?.response?.data?.message || 'Failed to load applications');
@@ -58,27 +67,44 @@ const AppliedJobs = () => {
     load();
     return () => { mounted = false; };
   }, []);
-
-  // Client-side sorting of applications
+  // Apply filters + client-side sorting to the raw applications
   useEffect(() => {
-    if (!applications || applications.length === 0) return;
-    const copy = [...applications];
-    const getTime = (item) => {
-      return new Date(item.createdAt || item.appliedAt || item.created_at || 0).getTime();
-    };
+    if (!rawApplications) return;
+    let copy = [...rawApplications];
 
-    if (sort === 'newest') {
-      copy.sort((a, b) => getTime(b) - getTime(a));
-    } else if (sort === 'oldest') {
-      copy.sort((a, b) => getTime(a) - getTime(b));
-    } else if (sort === 'recently-updated') {
+    // Status filter
+    if (selectedStatuses && selectedStatuses.size > 0) {
+      copy = copy.filter(a => selectedStatuses.has((a.status || 'Applied')));
+    }
+
+    // Date filter
+    if (dateRange && dateRange !== 'all') {
+      const days = parseInt(dateRange, 10);
+      const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
+      copy = copy.filter(a => {
+        const ts = new Date(a.createdAt || a.appliedAt || a.created_at || 0).getTime();
+        return ts >= cutoff;
+      });
+    }
+
+    const getTime = (item) => new Date(item.createdAt || item.appliedAt || item.created_at || 0).getTime();
+    if (sort === 'newest') copy.sort((a, b) => getTime(b) - getTime(a));
+    else if (sort === 'oldest') copy.sort((a, b) => getTime(a) - getTime(b));
+    else if (sort === 'recently-updated') {
       const getUpdated = (item) => new Date(item.updatedAt || item.updated_at || item.updatedAtAt || 0).getTime();
       copy.sort((a, b) => getUpdated(b) - getUpdated(a));
     }
 
-    // Apply sorted order to state
     setApplications(copy);
-  }, [sort]);
+  }, [rawApplications, sort, selectedStatuses, dateRange]);
+
+  const toggleStatus = (status) => {
+    setSelectedStatuses(prev => {
+      const next = new Set(prev);
+      if (next.has(status)) next.delete(status); else next.add(status);
+      return next;
+    });
+  };
 
   const withdraw = async (applicationId) => {
     if (!confirm('Are you sure you want to withdraw this application?')) return;
@@ -121,25 +147,17 @@ const AppliedJobs = () => {
               <h3 className="text-sm font-medium mb-3">Application Status</h3>
               <div className="space-y-2">
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" className="rounded border-input" defaultChecked />
+                  <input type="checkbox" className="rounded border-input" checked={selectedStatuses.size === 0} onChange={() => { setSelectedStatuses(new Set()); }} />
                   <span className="text-sm">All</span>
-                  <span className="ml-auto text-xs text-muted-foreground">12</span>
+                  <span className="ml-auto text-xs text-muted-foreground">{rawApplications.length}</span>
                 </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" className="rounded border-input" />
-                  <span className="text-sm">Under Review</span>
-                  <span className="ml-auto text-xs text-muted-foreground">5</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" className="rounded border-input" />
-                  <span className="text-sm">Shortlisted</span>
-                  <span className="ml-auto text-xs text-muted-foreground">3</span>
-                </label>
-                <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" className="rounded border-input" />
-                  <span className="text-sm">Rejected</span>
-                  <span className="ml-auto text-xs text-muted-foreground">2</span>
-                </label>
+                {['Under Review','Shortlisted','Rejected'].map((s) => (
+                  <label key={s} className="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" className="rounded border-input" checked={selectedStatuses.has(s)} onChange={() => toggleStatus(s)} />
+                    <span className="text-sm">{s}</span>
+                    <span className="ml-auto text-xs text-muted-foreground">{rawApplications.filter(a => (a.status || 'Applied') === s).length}</span>
+                  </label>
+                ))}
               </div>
             </div>
 
@@ -147,19 +165,19 @@ const AppliedJobs = () => {
               <h3 className="text-sm font-medium mb-3">Application Date</h3>
               <div className="space-y-2">
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="radio" name="date" className="border-input" defaultChecked />
+                  <input type="radio" name="date" className="border-input" checked={dateRange === 'all'} onChange={() => setDateRange('all')} />
                   <span className="text-sm">All Time</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="radio" name="date" className="border-input" />
+                  <input type="radio" name="date" className="border-input" checked={dateRange === '7'} onChange={() => setDateRange('7')} />
                   <span className="text-sm">Last 7 Days</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="radio" name="date" className="border-input" />
+                  <input type="radio" name="date" className="border-input" checked={dateRange === '30'} onChange={() => setDateRange('30')} />
                   <span className="text-sm">Last 30 Days</span>
                 </label>
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="radio" name="date" className="border-input" />
+                  <input type="radio" name="date" className="border-input" checked={dateRange === '90'} onChange={() => setDateRange('90')} />
                   <span className="text-sm">Last 3 Months</span>
                 </label>
               </div>

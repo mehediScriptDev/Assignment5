@@ -61,9 +61,9 @@ const Header = () => {
             )}
 
             {user ? (
-              <button onClick={handleLogout} className="btn btn-ghost text-sm">Sign Out</button>
+              <button onClick={handleLogout} className="btn btn-primary text-sm cursor-pointer" style={{ background: '#fff8e1', borderColor: '#fff8e1', color: '#111827' }}>Sign Out</button>
             ) : (
-              <Link to="/login" className="btn btn-ghost text-sm">Sign In</Link>
+              <Link to="/login" className="btn btn-ghost text-sm cursor-pointer">Sign In</Link>
             )}
 
             {user && (

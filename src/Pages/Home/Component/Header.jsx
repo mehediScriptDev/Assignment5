@@ -38,7 +38,7 @@ const Header = () => {
                                       Post Job
                                     </Link>
 
-                                    <button onClick={() => { auth.logout(); navigate('/'); }} className="btn btn-ghost text-sm">Sign Out</button>
+                                    <button onClick={() => { auth.logout(); navigate('/'); }} className="btn btn-primary text-sm cursor-pointer" style={{ background: '#fff8e1', borderColor: '#fff8e1', color: '#111827' }}>Sign Out</button>
 
                                     <div className="flex items-center gap-3 ml-2">
                                         <div className="h-9 w-9 rounded-full bg-white flex items-center justify-center border border-[hsl(var(--color-border))]">
@@ -56,7 +56,7 @@ const Header = () => {
                                 <>
                                   <div className="flex items-center gap-3">
                                     <Link to="/user-dashboard" className="btn btn-ghost text-sm">Dashboard</Link>
-                                    <button onClick={() => { auth.logout(); navigate('/'); }} className="btn btn-ghost text-sm">Sign Out</button>
+                                    <button onClick={() => { auth.logout(); navigate('/'); }} className="btn btn-primary text-sm cursor-pointer" style={{ background: '#fff8e1', borderColor: '#fff8e1', color: '#111827' }}>Sign Out</button>
 
                                     <div className="flex items-center gap-3 ml-2">
                                       <div className="h-9 w-9 rounded-full bg-white flex items-center justify-center border border-[hsl(var(--color-border))]">
@@ -73,7 +73,7 @@ const Header = () => {
 
               return (
                 <>
-                  <Link to="/login" className="btn btn-ghost text-sm">Sign In</Link>
+                  <Link to="/login" className="btn btn-ghost text-sm cursor-pointer">Sign In</Link>
                   <Link to="/register-company" className="btn btn-primary text-sm">Post a Job</Link>
                 </>
               );

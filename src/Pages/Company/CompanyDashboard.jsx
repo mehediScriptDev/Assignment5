@@ -1,5 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router';
+import client from '../../api/client';
+import { useToast } from '../../context/ToastContext';
 import {
   FiBriefcase,
   FiPlus,
@@ -18,6 +20,71 @@ import { BiBuilding } from 'react-icons/bi';
 import { FaLightbulb } from 'react-icons/fa';
 
 const CompanyDashboard = () => {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const { showToast } = useToast();
+
+  const [jobs, setJobs] = useState([]);
+  const [jobsLoading, setJobsLoading] = useState(true);
+  const [applicants, setApplicants] = useState([]);
+  const [applicantsLoading, setApplicantsLoading] = useState(true);
+
+  useEffect(() => {
+    let mounted = true;
+    const load = async () => {
+      try {
+        setLoading(true);
+        const res = await (await import('../../api/client')).default.get('/companies/dashboard/stats');
+        if (!mounted) return;
+        if (res.data && res.data.success) setStats(res.data.data || {});
+        else setError(res.data?.message || 'Failed to load stats');
+      } catch (e) {
+        console.error('Failed to load dashboard stats', e);
+        if (mounted) setError(e?.response?.data?.message || e.message || 'Failed to load stats');
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    load();
+    return () => { mounted = false; };
+  }, []);
+
+  useEffect(() => {
+    let mounted = true;
+    const loadLists = async () => {
+      try {
+        setJobsLoading(true);
+        setApplicantsLoading(true);
+        const [jobsRes, appsRes] = await Promise.all([
+          client.get('/companies/jobs', { params: { page: 1, limit: 5, sort: 'newest' } }),
+          client.get('/companies/applicants', { params: { page: 1, limit: 5, sort: 'newest' } })
+        ]);
+
+        if (!mounted) return;
+
+        if (jobsRes.data && jobsRes.data.success) setJobs(jobsRes.data.data || []);
+        else setJobs([]);
+
+        if (appsRes.data && appsRes.data.success) setApplicants(appsRes.data.data || []);
+        else setApplicants([]);
+      } catch (e) {
+        console.error('Failed loading dashboard lists', e);
+        showToast && showToast('Failed to load dashboard lists', { type: 'error' });
+      } finally {
+        if (mounted) {
+          setJobsLoading(false);
+          setApplicantsLoading(false);
+        }
+      }
+    };
+
+    loadLists();
+    return () => { mounted = false; };
+  }, [showToast]);
+
+  const s = stats || {};
+
   return (
     <main className="bg-background text-foreground antialiased">
       {/* Header removed — use global layout header instead */}
@@ -36,7 +103,7 @@ const CompanyDashboard = () => {
                 <FiBriefcase className="h-6 w-6 text-blue-600" />
               </div>
             </div>
-            <h3 className="text-2xl font-bold mb-1">24</h3>
+            <h3 className="text-2xl font-bold mb-1">{loading ? '—' : (s.activeJobs ?? s.totalJobs ?? 0)}</h3>
             <p className="text-sm text-[hsl(var(--color-muted-foreground))]">Active Jobs</p>
           </div>
 
@@ -46,7 +113,7 @@ const CompanyDashboard = () => {
                 <FiUsers className="h-6 w-6 text-green-600" />
               </div>
             </div>
-            <h3 className="text-2xl font-bold mb-1">156</h3>
+            <h3 className="text-2xl font-bold mb-1">{loading ? '—' : (s.totalApplicants ?? s.totalApplications ?? 0)}</h3>
             <p className="text-sm text-[hsl(var(--color-muted-foreground))]">Total Applicants</p>
           </div>
 
@@ -56,7 +123,7 @@ const CompanyDashboard = () => {
                 <FiClock className="h-6 w-6 text-yellow-600" />
               </div>
             </div>
-            <h3 className="text-2xl font-bold mb-1">32</h3>
+            <h3 className="text-2xl font-bold mb-1">{loading ? '—' : (s.pendingReviews ?? 0)}</h3>
             <p className="text-sm text-[hsl(var(--color-muted-foreground))]">Pending Reviews</p>
           </div>
 
@@ -66,7 +133,7 @@ const CompanyDashboard = () => {
                 <FiStar className="h-6 w-6 text-purple-600" />
               </div>
             </div>
-            <h3 className="text-2xl font-bold mb-1">18</h3>
+            <h3 className="text-2xl font-bold mb-1">{loading ? '—' : (s.shortLists ?? 0)}</h3>
             <p className="text-sm text-[hsl(var(--color-muted-foreground))]">Shortlisted</p>
           </div>
         </div>
@@ -82,32 +149,36 @@ const CompanyDashboard = () => {
               </div>
 
               <div className="divide-y divide-[hsl(var(--color-border))]">
-                {/* Job item example */}
-                <div className="p-6 hover:bg-[hsl(var(--color-accent))] transition-colors">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex-1">
-                      <h3 className="font-semibold mb-1"><a href="#" className="hover:text-[hsl(var(--color-primary))]">Senior Full Stack Developer</a></h3>
-                      <div className="flex flex-wrap items-center gap-3 text-sm text-[hsl(var(--color-muted-foreground))]">
-                        <span className="flex items-center gap-1"><FiMapPin className="h-3 w-3" />San Francisco, CA</span>
-                        <span className="flex items-center gap-1"><FiBriefcase className="h-3 w-3" />Full-time</span>
-                        <span className="flex items-center gap-1"><FiClock className="h-3 w-3" />Posted 2 days ago</span>
+                {jobsLoading ? (
+                  <div className="p-6">Loading recent jobs...</div>
+                ) : jobs.length === 0 ? (
+                  <div className="p-6">No recent jobs</div>
+                ) : (
+                  jobs.map((job) => (
+                    <div key={job.id} className="p-6 hover:bg-[hsl(var(--color-accent))] transition-colors">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1">
+                          <h3 className="font-semibold mb-1"><a href={`/job/${job.slug}`} className="hover:text-[hsl(var(--color-primary))]">{job.title}</a></h3>
+                          <div className="flex flex-wrap items-center gap-3 text-sm text-[hsl(var(--color-muted-foreground))]">
+                            <span className="flex items-center gap-1"><FiMapPin className="h-3 w-3" />{job.location || 'Remote'}</span>
+                            <span className="flex items-center gap-1"><FiBriefcase className="h-3 w-3" />{job.employmentType || 'Full-time'}</span>
+                            <span className="flex items-center gap-1"><FiClock className="h-3 w-3" />{job.createdAt ? new Date(job.createdAt).toLocaleDateString() : ''}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-4 text-sm">
+                          <span className="text-[hsl(var(--color-muted-foreground))]"><span className="font-semibold text-[hsl(var(--color-foreground))]">{job.applicants ?? 0}</span> applicants</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Link to={`/jobs/${job.slug}`} className="btn btn-outline text-xs h-8"><FiEye className="h-3 w-3 mr-1" />View</Link>
+                          <Link to={`/company/manage-jobs?jobId=${job.id}`} className="btn btn-outline text-xs h-8"><FiEdit className="h-3 w-3 mr-1" />Edit</Link>
+                        </div>
                       </div>
                     </div>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4 text-sm">
-                      <span className="text-[hsl(var(--color-muted-foreground))]"><span className="font-semibold text-[hsl(var(--color-foreground))]">24</span> applicants</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <button className="btn btn-outline text-xs h-8"><FiEye className="h-3 w-3 mr-1" />View</button>
-                      <button className="btn btn-outline text-xs h-8"><FiEdit className="h-3 w-3 mr-1" />Edit</button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* additional job items (omitted for brevity) */}
-
+                  ))
+                )}
               </div>
             </div>
 
@@ -120,37 +191,40 @@ const CompanyDashboard = () => {
               </div>
 
               <div className="divide-y divide-[hsl(var(--color-border))]">
-                <div className="p-6 hover:bg-[hsl(var(--color-accent))] transition-colors">
-                  <div className="flex items-start gap-4">
-                    <div className="h-12 w-12 rounded-full bg-[hsl(var(--color-secondary))] flex items-center justify-center shrink-0">
-                      <FiUsers className="h-6 w-6 text-[hsl(var(--color-primary))]" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <h3 className="font-semibold mb-1">Sarah Johnson</h3>
-                          <p className="text-sm text-[hsl(var(--color-muted-foreground))]">Applied for <span className="font-medium text-[hsl(var(--color-foreground))]">Senior Full Stack Developer</span></p>
+                {applicantsLoading ? (
+                  <div className="p-6">Loading recent applicants...</div>
+                ) : applicants.length === 0 ? (
+                  <div className="p-6">No recent applicants</div>
+                ) : (
+                  applicants.map((app) => {
+                    const user = app.user || {};
+                    const job = app.job || {};
+                    return (
+                      <div key={app.id} className="p-6 hover:bg-[hsl(var(--color-accent))] transition-colors">
+                        <div className="flex items-start gap-4">
+                          <div className="h-12 w-12 rounded-full bg-[hsl(var(--color-secondary))] flex items-center justify-center shrink-0">
+                            <FiUsers className="h-6 w-6 text-[hsl(var(--color-primary))]" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between mb-2">
+                              <div>
+                                <h3 className="font-semibold mb-1">{user.name || user.email || 'Applicant'}</h3>
+                                <p className="text-sm text-[hsl(var(--color-muted-foreground))]">Applied for <span className="font-medium text-[hsl(var(--color-foreground))]">{job.title || 'Job'}</span></p>
+                              </div>
+                              <span className="text-xs text-[hsl(var(--color-muted-foreground))]">{app.createdAt ? new Date(app.createdAt).toLocaleString() : ''}</span>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <button className="btn btn-primary text-xs h-8"><FiCheck className="h-3 w-3 mr-1" />Shortlist</button>
+                              <Link to={`/company/applicants/${app.id}`} className="btn btn-outline text-xs h-8"><FiEye className="h-3 w-3 mr-1" />View Profile</Link>
+                              <button className="btn btn-outline text-xs h-8"><FiDownload className="h-3 w-3 mr-1" />Resume</button>
+                            </div>
+                          </div>
                         </div>
-                        <span className="text-xs text-[hsl(var(--color-muted-foreground))]">2 hours ago</span>
                       </div>
-
-                      <div className="flex flex-wrap items-center gap-2 mb-3">
-                        <span className="badge badge-secondary">React</span>
-                        <span className="badge badge-secondary">Node.js</span>
-                        <span className="badge badge-secondary">AWS</span>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <button className="btn btn-primary text-xs h-8"><FiCheck className="h-3 w-3 mr-1" />Shortlist</button>
-                        <button className="btn btn-outline text-xs h-8"><FiEye className="h-3 w-3 mr-1" />View Profile</button>
-                        <button className="btn btn-outline text-xs h-8"><FiDownload className="h-3 w-3 mr-1" />Resume</button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* additional applicants omitted for brevity */}
-
+                    );
+                  })
+                )}
               </div>
             </div>
           </div>
