@@ -1,8 +1,9 @@
 import React, { useContext } from "react";
 import { Link, NavLink, useNavigate } from 'react-router';
 import { AuthContext } from '../../../context/AuthContext';
-import { FiBriefcase } from 'react-icons/fi';
+import { FiBriefcase, FiFilePlus, FiPlus } from 'react-icons/fi';
 import { FaUser } from 'react-icons/fa';
+import { BiBuilding } from 'react-icons/bi';
 
 const Header = () => {
   const auth = useContext(AuthContext);
@@ -28,9 +29,19 @@ const Header = () => {
 
           {user && (
             <nav className="hidden sm:flex items-center gap-6">
-              <NavLink to="/" className={({ isActive }) => `text-sm ${isActive ? 'text-primary font-medium' : 'text-muted-foreground'} hover:text-primary`}>Jobs</NavLink>
-              <NavLink to="/user-dashboard" className={({ isActive }) => `text-sm ${isActive ? 'text-primary font-medium' : 'text-muted-foreground'} hover:text-primary`}>Dashboard</NavLink>
-              <NavLink to="/applied-jobs" className={({ isActive }) => `text-sm ${isActive ? 'text-primary font-medium' : 'text-muted-foreground'} hover:text-primary`}>My Applications</NavLink>
+              {user.role === 'COMPANY' ? (
+                <>
+                  <NavLink to="/company/dashboard" className={({ isActive }) => `text-sm ${isActive ? 'text-primary font-medium' : 'text-muted-foreground'} hover:text-primary`}>Dashboard</NavLink>
+                  <NavLink to="/company/manage-jobs" className={({ isActive }) => `text-sm ${isActive ? 'text-primary font-medium' : 'text-muted-foreground'} hover:text-primary`}>Manage Jobs</NavLink>
+                  <NavLink to="/company/applicants" className={({ isActive }) => `text-sm ${isActive ? 'text-primary font-medium' : 'text-muted-foreground'} hover:text-primary`}>Applicants</NavLink>
+                </>
+              ) : (
+                <>
+                  <NavLink to="/" className={({ isActive }) => `text-sm ${isActive ? 'text-primary font-medium' : 'text-muted-foreground'} hover:text-primary`}>Jobs</NavLink>
+                  <NavLink to="/user-dashboard" className={({ isActive }) => `text-sm ${isActive ? 'text-primary font-medium' : 'text-muted-foreground'} hover:text-primary`}>Dashboard</NavLink>
+                  <NavLink to="/applied-jobs" className={({ isActive }) => `text-sm ${isActive ? 'text-primary font-medium' : 'text-muted-foreground'} hover:text-primary`}>My Applications</NavLink>
+                </>
+              )}
             </nav>
           )}
         </div>
@@ -40,20 +51,25 @@ const Header = () => {
 
         {/* Right: avatar / auth actions */}
         <div className="flex items-center justify-end gap-4">
-          {user ? (
-            <div className="flex items-center gap-3">
-              <button onClick={handleLogout} className="text-sm text-muted-foreground hover:text-primary" aria-label="Sign out">Sign Out</button>
-              <div className="w-9 h-9 rounded-full bg-white border border-border flex items-center justify-center text-sm text-muted-foreground">
-                <FaUser className="h-5 w-5 text-muted-foreground" />
+          <div className="flex items-center gap-3">
+            <Link to="/company/create-job" className="btn btn-primary text-sm flex items-center gap-2">
+             <FiFilePlus className="h-4 w-4" />
+              Post Job
+            </Link>
+
+            <button onClick={handleLogout} className="btn btn-ghost text-sm">Sign Out</button>
+
+            <div className="flex items-center gap-3 ml-2">
+              <div className="h-9 w-9 rounded-full bg-white flex items-center justify-center border border-[hsl(var(--color-border))]">
+                {user?.role === 'COMPANY' ? (
+                  <BiBuilding className="h-5 w-5 text-black" />
+                ) : (
+                  <FaUser className="h-5 w-5 text-black" />
+                )}
               </div>
-              <span className="text-sm hidden sm:inline text-muted-foreground">{name}</span>
+              <span className="text-sm font-medium hidden sm:inline text-black">{name}</span>
             </div>
-          ) : (
-            <div className="flex items-center gap-3">
-              <Link to="/login" className="text-sm text-muted-foreground hover:text-primary">Sign In</Link>
-              <Link to="/register-company" className="btn btn-primary text-sm">Post a Job</Link>
-            </div>
-          )}
+          </div>
         </div>
       </div>
     </header>
