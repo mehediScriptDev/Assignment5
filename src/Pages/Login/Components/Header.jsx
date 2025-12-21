@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { Link, NavLink, useNavigate } from 'react-router';
+import { Link, NavLink, useNavigate, useLocation } from 'react-router';
 import { AuthContext } from '../../../context/AuthContext';
 import { FiBriefcase, FiFilePlus, FiPlus } from 'react-icons/fi';
 import { FaUser } from 'react-icons/fa';
@@ -8,6 +8,7 @@ import { BiBuilding } from 'react-icons/bi';
 const Header = () => {
   const auth = useContext(AuthContext);
   const navigate = useNavigate();
+  const location = useLocation();
 
   const user = auth && auth.user;
   const name = user?.name || 'User';
@@ -51,11 +52,13 @@ const Header = () => {
 
         {/* Right: avatar / auth actions */}
         <div className="flex items-center justify-end gap-4">
-          <div className="flex items-center gap-3">
-            <Link to="/company/create-job" className="btn btn-primary text-sm flex items-center gap-2">
-             <FiFilePlus className="h-4 w-4" />
-              Post Job
-            </Link>
+            <div className="flex items-center gap-3">
+            {location.pathname !== '/user-dashboard' && (
+              <Link to="/company/create-job" className="btn btn-primary text-sm flex items-center gap-2">
+               <FiFilePlus className="h-4 w-4" />
+                Post Job
+              </Link>
+            )}
 
             {user ? (
               <button onClick={handleLogout} className="btn btn-ghost text-sm">Sign Out</button>
