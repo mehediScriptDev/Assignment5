@@ -13,6 +13,7 @@ const CompanyProfile = () => {
   const [coverLetter, setCoverLetter] = useState('');
   const [applying, setApplying] = useState(false);
   const [appliedJobIds, setAppliedJobIds] = useState([]);
+  const [appliedMap, setAppliedMap] = useState({}); // jobId -> applicationId
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const { showToast } = useToast();
@@ -58,6 +59,31 @@ const CompanyProfile = () => {
     fetchBySlug();
     return () => { mounted = false; };
   }, [id]);
+
+  // Load user's applications to identify which jobs are applied
+  useEffect(() => {
+    const loadApplied = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        const res = await client.get('/applications/my-applications');
+        if (res.data && res.data.success) {
+          const apps = res.data.data || [];
+          const ids = apps.map(a => a.job?.id || a.jobId || a.job_id).filter(Boolean);
+          const map = {};
+          apps.forEach(a => {
+            const jid = a.job?.id || a.jobId || a.job_id;
+            if (jid) map[jid] = a.id;
+          });
+          setAppliedJobIds(ids);
+          setAppliedMap(map);
+        }
+      } catch (e) {
+        console.debug('Failed to load user applications', e?.message || e);
+      }
+    };
+    loadApplied();
+  }, []);
 
   if (loading) return <main className="container mx-auto px-4 py-8"><div className="text-center py-12">Loading company…</div></main>;
   if (error) return <main className="container mx-auto px-4 py-8"><div className="text-center py-12 text-destructive">{error}</div></main>;
@@ -223,25 +249,50 @@ const CompanyProfile = () => {
                     <span className="text-sm font-semibold text-[hsl(var(--color-primary))]">{job.salaryMin || job.salaryMax ? `${job.salaryMin ? `$${job.salaryMin}` : ''}${job.salaryMin && job.salaryMax ? ' - ' : ''}${job.salaryMax ? `$${job.salaryMax}` : ''}` : ''}</span>
                     <div className="flex gap-2">
                       <Link to={`/jobs/${job.slug || job.id}`} className="btn btn-outline text-sm">View Details</Link>
-                      <button
-                        className="btn btn-primary text-sm"
-                        onClick={(e) => {
-                          const token = typeof window !== 'undefined' ? window.localStorage?.token : null;
-                          if (!token) {
-                            // redirect to login with next param
-                            const next = encodeURIComponent(`/jobs/${job.slug || job.id}`);
-                            window.location.href = `/login?next=${next}`;
-                            return;
+                      {appliedJobIds.includes(job.id) ? (
+                        <button
+                          className="btn btn-primary text-sm"
+                          style={{ background: '#fff8e1', borderColor: '#fff8e1', color: '#111827' }}
+                          onClick={async () => {
+                          if (!confirm('Are you sure you want to withdraw this application?')) return;
+                          try {
+                            const appId = appliedMap[job.id];
+                            if (!appId) throw new Error('Application id not found');
+                            await client.delete(`/applications/${appId}`);
+                            setAppliedJobIds(prev => prev.filter(id => id !== job.id));
+                            setAppliedMap(prev => { const n = { ...prev }; delete n[job.id]; return n; });
+                            // update job applicants count locally
+                            setCompany(prev => {
+                              if (!prev) return prev;
+                              const jobs = (prev.jobs || []).map(j => j.id === job.id ? ({ ...j, applicants: Math.max(0, (j.applicants || 1) - 1) }) : j);
+                              return { ...prev, jobs };
+                            });
+                            showToast('Application withdrawn', { type: 'success' });
+                          } catch (e) {
+                            console.error('Withdraw failed', e);
+                            alert(e?.response?.data?.message || e.message || 'Failed to withdraw application');
                           }
-                          // open modal
-                          setSelectedJob(job);
-                          setCoverLetter('');
-                          setShowApplyModal(true);
-                        }}
-                        disabled={appliedJobIds.includes(job.id)}
-                      >
-                        {appliedJobIds.includes(job.id) ? 'Applied' : 'Apply Now'}
-                      </button>
+                        }}>Withdraw</button>
+                      ) : (
+                        <button
+                          className="btn btn-primary text-sm"
+                          onClick={(e) => {
+                            const token = typeof window !== 'undefined' ? window.localStorage?.token : null;
+                            if (!token) {
+                              // redirect to login with next param
+                              const next = encodeURIComponent(`/jobs/${job.slug || job.id}`);
+                              window.location.href = `/login?next=${next}`;
+                              return;
+                            }
+                            // open modal
+                            setSelectedJob(job);
+                            setCoverLetter('');
+                            setShowApplyModal(true);
+                          }}
+                        >
+                          Apply Now
+                        </button>
+                      )}
                     </div>
                   </div>
                 </article>

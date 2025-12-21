@@ -20,11 +20,14 @@ const salaryRangeToBounds = (rangeLabel) => {
 };
 
 const JobsList = ({ filters = {}, search = '', pageSize = 10 }) => {
-  const [jobs, setJobs] = useState([]);
+  const [rawJobs, setRawJobs] = useState([]); // raw fetched jobs (for paging)
+  const [jobs, setJobs] = useState([]); // displayed (sorted) jobs
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
+  const [sort, setSort] = useState('relevance');
+  const [appliedMap, setAppliedMap] = useState({}); // jobId -> applicationId
   const cancelRef = useRef(null);
 
   // Build query params from filters and search
@@ -93,7 +96,7 @@ const JobsList = ({ filters = {}, search = '', pageSize = 10 }) => {
         if (res.data && res.data.success) {
           const data = res.data.data || [];
           setTotalPages(res.data.totalPages || 1);
-          setJobs(prev => (page === 1 ? data : [...prev, ...data]));
+          setRawJobs(prev => (page === 1 ? data : [...prev, ...data]));
         } else {
           setError('Failed to load jobs');
         }
@@ -107,6 +110,80 @@ const JobsList = ({ filters = {}, search = '', pageSize = 10 }) => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, JSON.stringify(filters), search]);
+
+  // Load current user's applications to know which jobs are applied
+  useEffect(() => {
+    const loadApplied = async () => {
+      try {
+        const token = localStorage.getItem('token');
+        if (!token) return;
+        const res = await client.get('/applications/my-applications');
+        if (res.data && res.data.success) {
+          const apps = res.data.data || [];
+          const map = {};
+          apps.forEach(a => {
+            const jobId = a.job?.id || a.jobId || a.job_id;
+            if (jobId) map[jobId] = a.id;
+          });
+          setAppliedMap(map);
+        }
+      } catch (e) {
+        // ignore silently; user may not be logged in
+        console.debug('Could not load applied jobs map', e?.message || e);
+      }
+    };
+    loadApplied();
+  }, []);
+
+  // Derive sorted/displayed jobs from rawJobs + sort
+  useEffect(() => {
+    if (!rawJobs || rawJobs.length === 0) {
+      setJobs([]);
+      return;
+    }
+
+    const copy = [...rawJobs];
+    const getTime = (item) => new Date(item.createdAt || item.postedAt || item.created_at || 0).getTime();
+
+    if (sort === 'newest') {
+      copy.sort((a, b) => getTime(b) - getTime(a));
+    } else if (sort === 'oldest') {
+      copy.sort((a, b) => getTime(a) - getTime(b));
+    } else if (sort === 'salary-high') {
+      copy.sort((a, b) => (b.salaryMax || b.salaryMin || 0) - (a.salaryMax || a.salaryMin || 0));
+    } else if (sort === 'salary-low') {
+      copy.sort((a, b) => (a.salaryMin || 0) - (b.salaryMin || 0));
+    } else {
+      // relevance / default - keep server order
+    }
+
+    setJobs(copy);
+  }, [rawJobs, sort]);
+
+  const handleWithdraw = async (job) => {
+    try {
+      const appId = appliedMap[job.id];
+      if (!appId) {
+        alert('No application found to withdraw');
+        return;
+      }
+      await client.delete(`/applications/${appId}`);
+      // remove mapping and optionally update job applicants count
+      setAppliedMap(prev => {
+        const next = { ...prev };
+        delete next[job.id];
+        return next;
+      });
+      setJobs(prev => prev.map(j => j.id === job.id ? ({ ...j, applicants: Math.max(0, (j.applicants || 1) - 1) }) : j));
+      // refresh rawJobs too
+      setRawJobs(prev => prev.map(j => j.id === job.id ? ({ ...j, applicants: Math.max(0, (j.applicants || 1) - 1) }) : j));
+      // show success
+      try { window.showToast && window.showToast('Application withdrawn', { type: 'success' }); } catch(e) {}
+    } catch (e) {
+      console.error('Failed to withdraw application', e);
+      alert(e?.response?.data?.message || 'Failed to withdraw application');
+    }
+  };
 
   if (loading && jobs.length === 0) return <div className="py-6 text-center text-sm text-muted-foreground">Loading jobs...</div>;
   if (error && jobs.length === 0) return <div className="py-6 text-center text-sm text-destructive">{error}</div>;
@@ -122,7 +199,16 @@ const JobsList = ({ filters = {}, search = '', pageSize = 10 }) => {
     <section className="container mx-auto px-4 py-6">
       <div className="mb-4 flex items-center justify-between">
         <h2 className="text-2xl font-semibold">Available Jobs</h2>
-        <div className="text-sm text-muted-foreground">Showing {jobs.length} results</div>
+        <div className="flex items-center gap-4">
+          <div className="text-sm text-muted-foreground">Showing {rawJobs.length} results</div>
+          <select className="select select-sm" value={sort} onChange={(e) => setSort(e.target.value)}>
+            <option value="relevance">Relevance</option>
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="salary-high">Salary: High → Low</option>
+            <option value="salary-low">Salary: Low → High</option>
+          </select>
+        </div>
       </div>
 
       {jobs.length === 0 ? (
@@ -157,7 +243,17 @@ const JobsList = ({ filters = {}, search = '', pageSize = 10 }) => {
                 <div className="flex flex-col items-end justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <Link to={`/jobs/${job.slug}`} className="btn btn-outline">View Details</Link>
-                    <Link to={`/jobs/${job.slug}`} className="btn btn-primary">Apply Now</Link>
+                      {appliedMap[job.id] ? (
+                      <button
+                        className="btn btn-primary"
+                        style={{ background: '#fff8e1', borderColor: '#fff8e1', color: '#111827' }}
+                        onClick={() => handleWithdraw(job)}
+                      >
+                        Withdraw
+                      </button>
+                    ) : (
+                      <Link to={`/jobs/${job.slug}`} className="btn btn-primary">Apply Now</Link>
+                    )}
                   </div>
                 </div>
               </div>

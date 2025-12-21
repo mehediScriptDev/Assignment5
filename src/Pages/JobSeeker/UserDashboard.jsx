@@ -112,7 +112,21 @@ const UserDashboard = () => {
                     <div className="flex flex-col items-end justify-between gap-4">
                       <div className="flex items-center gap-3">
                         <Link to={`/jobs/${job.slug}`} className="btn btn-outline">View Details</Link>
-                        <Link to={`/jobs/${job.slug}`} className="btn btn-primary">Apply Now</Link>
+                        {(() => {
+                          const foundApp = applications.find(a => (a.job && a.job.id === job.id) || a.jobId === job.id || a.job_id === job.id);
+                          if (foundApp) {
+                            return (
+                              <button
+                                className="btn btn-primary"
+                                style={{ background: '#fff8e1', borderColor: '#fff8e1', color: '#111827' }}
+                                onClick={() => withdraw(foundApp.id)}
+                              >
+                                Withdraw
+                              </button>
+                            );
+                          }
+                          return <Link to={`/jobs/${job.slug}`} className="btn btn-primary">Apply Now</Link>;
+                        })()}
                       </div>
                     </div>
                   </div>

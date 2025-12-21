@@ -15,6 +15,7 @@ const JobDetails = () => {
   const [submitting, setSubmitting] = useState(false);
   const [similar, setSimilar] = useState([]);
   const [uploadedFile, setUploadedFile] = useState(null);
+  const [appliedAppId, setAppliedAppId] = useState(null);
   const [filePreviewVisible, setFilePreviewVisible] = useState(false);
   const [fileName, setFileName] = useState('');
   const [fileSize, setFileSize] = useState('');
@@ -34,6 +35,19 @@ const JobDetails = () => {
             if (sim.data && sim.data.success) setSimilar(sim.data.data || []);
           } catch (e) {
             console.warn('Failed to load similar jobs', e);
+          }
+          // if logged in, check if user already applied to this job
+          try {
+            const token = localStorage.getItem('token');
+            if (token) {
+              const apps = await client.get('/applications/my-applications');
+              if (apps.data && apps.data.success) {
+                const found = (apps.data.data || []).find(a => (a.job && (a.job.id === res.data.data.id)) || a.jobId === res.data.data.id || a.job_id === res.data.data.id);
+                if (found) setAppliedAppId(found.id);
+              }
+            }
+          } catch (e) {
+            console.debug('Could not determine applied status', e?.message || e);
           }
         }
       } catch (err) {
@@ -94,6 +108,10 @@ const JobDetails = () => {
       const res = await client.post(`/applications/jobs/${job.id}/apply`, { coverLetter });
       if (res.data && res.data.success) {
         showToast('Application submitted', { type: 'success' });
+        // if server returned the created application id, keep it so we can show Withdraw
+        const created = res.data.data;
+        if (created && (created.id || created._id)) setAppliedAppId(created.id || created._id);
+        setJob(prev => prev ? ({ ...prev, applicants: (prev.applicants || 0) + 1 }) : prev);
         closeApply();
       }
     } catch (err) {
@@ -292,10 +310,31 @@ const JobDetails = () => {
               <div className="text-3xl font-semibold text-[hsl(var(--color-foreground))]">{job.salaryMin || job.salaryMax ? `${job.salaryMin ? `$${job.salaryMin}` : ''}${job.salaryMax ? ` - $${job.salaryMax}` : ''}` : '$120k - $180k'}</div>
               <div className="text-sm text-[hsl(var(--color-muted-foreground))] mt-1">Per year</div>
               <div className="my-4">
-                <button onClick={openApply} className="btn btn-primary w-full flex items-center justify-center gap-2">
-                  <FiSend className="h-4 w-4" />
-                  Apply Now
-                </button>
+                {appliedAppId ? (
+                  <button
+                    onClick={async () => {
+                      if (!confirm('Are you sure you want to withdraw your application?')) return;
+                      try {
+                        await client.delete(`/applications/${appliedAppId}`);
+                        setAppliedAppId(null);
+                        setJob(prev => prev ? ({ ...prev, applicants: Math.max(0, (prev.applicants || 1) - 1) }) : prev);
+                        showToast('Application withdrawn', { type: 'success' });
+                      } catch (e) {
+                        console.error('Withdraw failed', e);
+                        alert(e?.response?.data?.message || 'Failed to withdraw application');
+                      }
+                    }}
+                    className="btn btn-primary w-full"
+                    style={{ background: '#fff8e1', borderColor: '#fff8e1', color: '#111827' }}
+                  >
+                    Withdraw
+                  </button>
+                ) : (
+                  <button onClick={openApply} className="btn btn-primary w-full flex items-center justify-center gap-2">
+                    <FiSend className="h-4 w-4" />
+                    Apply Now
+                  </button>
+                )}
               </div>
             </div>
 
