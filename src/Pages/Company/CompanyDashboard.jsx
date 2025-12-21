@@ -159,10 +159,10 @@ const CompanyDashboard = () => {
             <div className="card p-6">
               <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
               <div className="space-y-2">
-                <button className="btn btn-primary w-full justify-start"><FiPlus className="h-4 w-4 mr-2" />Post New Job</button>
-                <button className="btn btn-outline w-full justify-start"><FiList className="h-4 w-4 mr-2" />Manage Jobs</button>
-                <button className="btn btn-outline w-full justify-start"><FiUsers className="h-4 w-4 mr-2" />View Applicants</button>
-                <button className="btn btn-outline w-full justify-start"><FiSettings className="h-4 w-4 mr-2" />Company Settings</button>
+                <Link to="/company/create-job" className="btn btn-primary w-full justify-start"><FiPlus className="h-4 w-4 mr-2" />Post New Job</Link>
+                <Link to="/company/manage-jobs" className="btn btn-outline w-full justify-start"><FiList className="h-4 w-4 mr-2" />Manage Jobs</Link>
+                <Link to="/company/applicants" className="btn btn-outline w-full justify-start"><FiUsers className="h-4 w-4 mr-2" />View Applicants</Link>
+                <Link to="/company/settings" className="btn btn-outline w-full justify-start"><FiSettings className="h-4 w-4 mr-2" />Company Settings</Link>
               </div>
             </div>
 

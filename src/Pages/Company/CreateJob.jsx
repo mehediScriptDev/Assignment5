@@ -1,21 +1,22 @@
 import React from 'react';
 import { Link } from 'react-router';
+import { FiChevronRight, FiX } from 'react-icons/fi';
 
 const CreateJob = () => {
   return (
     <main className="container mx-auto px-4 py-6 max-w-4xl">
       <div className="mb-6">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-          <Link to="/company-dashboard" className="hover:text-primary">Dashboard</Link>
-          <i data-lucide="chevron-right" className="h-4 w-4"></i>
-          <span className="text-foreground">Create Job</span>
+        <div className="flex items-center gap-2 text-sm text-[hsl(var(--color-muted-foreground))] mb-2">
+          <Link to="/company-dashboard" className="hover:text-[hsl(var(--color-primary))]">Dashboard</Link>
+          <FiChevronRight className="h-4 w-4" />
+          <span className="text-[hsl(var(--color-foreground))]">Create Job</span>
         </div>
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold mb-2">Post a New Job</h1>
             <p className="text-muted-foreground">Fill in the details to create a new job posting</p>
           </div>
-          <Link to="/company-dashboard" className="btn btn-outline"><i data-lucide="x" className="h-4 w-4 mr-2"></i>Cancel</Link>
+          <Link to="/company-dashboard" className="btn btn-outline"><FiX className="h-4 w-4 mr-2" />Cancel</Link>
         </div>
       </div>
 
