@@ -1,6 +1,6 @@
 # LWS Job Portal
 
-A modern, full-stack job portal application built with React, Node.js, and PostgreSQL. This platform connects job seekers with employers, enabling seamless job applications and candidate management.
+A modern job portal frontend application built with React. This platform connects job seekers with employers, enabling seamless job applications and candidate management.
 
 ## 🎯 Features
 
