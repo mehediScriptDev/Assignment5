@@ -257,15 +257,3 @@ VITE_API_BASE=http://localhost:9000/api
 ```
 VITE_API_BASE=https://your-backend-url.com/api
 ```
-
-## 🤝 Contributing
-
-For issues or improvements, please contact the development team.
-
-## 📧 Support
-
-For support or questions, reach out through the contact page or email.
-
----
-
-**Made with ❤️ for the LWS Job Portal Project**
