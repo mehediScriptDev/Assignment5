@@ -32,7 +32,6 @@ A modern, full-stack job portal application built with React, Node.js, and Postg
 
 ## 🛠️ Tech Stack
 
-### Frontend
 - **React 18** - UI library
 - **React Router v7** - Client-side routing
 - **Tailwind CSS** - Styling
@@ -40,21 +39,12 @@ A modern, full-stack job portal application built with React, Node.js, and Postg
 - **React Icons** - Icon library
 - **Axios** - HTTP client
 
-### Backend
-- **Node.js** - Runtime environment
-- **Express.js** - Web framework
-- **Sequelize** - ORM
-- **PostgreSQL** - Database
-- **Multer** - File upload handling
-- **JWT** - Authentication
-
 ## 📋 Prerequisites
 
 Before running this project, ensure you have:
 - Node.js (v14 or higher)
 - npm or yarn
-- PostgreSQL database
-- Backend server running (port 9000)
+- Backend API server running (port 9000) - provided separately
 
 ## 🚀 Getting Started
 
